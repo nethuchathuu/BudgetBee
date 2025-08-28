@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import Glow from "../components/Glow";
 import PhoneMock from "../components/PhoneMock";
 import Features from "../components/features";
-import HowItWorks from "../components/HowItWork";
+import HowItWorks from "../components/HowItWorks";
 
 const colors = {
   bg: "from-[#0c111c] via-[#0a0f1a] to-[#0b1422]",
@@ -19,7 +19,7 @@ export default function LandingPage() {
       <Glow className="top-40 -right-24 w-[520px] h-[520px]" />
       <Navbar />
 
-      <main className="relative z-10">
+      <main className="relative z-10 pt-24">
         <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-8 md:grid-cols-2 md:py-16">
           <div>
             <motion.h1
@@ -60,6 +60,8 @@ export default function LandingPage() {
         </section>
 
         <Features />
+
+        <HowItWorks />
       </main>
 
       <Footer />
