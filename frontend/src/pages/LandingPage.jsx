@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Glow from "../components/Glow";
 import PhoneMock from "../components/PhoneMock";
 import Features from "../components/features";
+import HowItWorks from "../components/HowItWork";
 
 const colors = {
   bg: "from-[#0c111c] via-[#0a0f1a] to-[#0b1422]",
@@ -49,9 +50,7 @@ export default function LandingPage() {
               <a href="/signup" className="rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-6 py-3 font-semibold text-black shadow-xl hover:opacity-90">
                 Get Started
               </a>
-              <a href="#how" className="rounded-2xl border border-white/15 px-6 py-3 text-slate-200 hover:bg-white/10">
-                See how it works
-              </a>
+              
             </motion.div>
           </div>
 

@@ -11,8 +11,8 @@ export default function Navbar() {
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm text-slate-300">
           <a href="#features" className="hover:text-white transition">Features</a>
-          <a href="#how" className="hover:text-white transition">How it Works</a>
-          <a href="#security" className="hover:text-white transition">Security</a>
+          <a href="#HowItWork" className="hover:text-white transition">How it Works</a>
+          
         </div>
         <div className="flex items-center gap-3">
           <a href="/signin" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-slate-200 hover:bg-white/10 transition">
