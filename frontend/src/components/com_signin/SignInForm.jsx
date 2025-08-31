@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import google from "../assets/google_log.png";
+import google from "../../assets/google_log.png";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");

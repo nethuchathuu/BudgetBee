@@ -1,5 +1,5 @@
 import React from "react";
-import background from "../assets/login_backG.jpg"
+import background from "../../assets/login_backG.jpg"
 
 export default function SignInLeft() {
   return (

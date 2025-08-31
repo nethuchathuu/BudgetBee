@@ -2,10 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Glow from "../components/Glow";
-import PhoneMock from "../components/PhoneMock";
-import Features from "../components/features";
-import HowItWorks from "../components/HowItWorks";
+import Glow from "../components/com_landing/Glow";
+import PhoneMock from "../components/com_landing/PhoneMock";
+import Features from "../components/com_landing/features";
+import HowItWorks from "../components/com_landing/HowItWorks";
 
 const colors = {
   bg: "from-[#0c111c] via-[#0a0f1a] to-[#0b1422]",

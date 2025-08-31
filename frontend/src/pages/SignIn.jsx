@@ -1,8 +1,8 @@
 import React from "react";
 import Navbar from "../components/NavSign";
 import Footer from "../components/Footer";
-import SignInLeft from "../components/SignInLeft";
-import SignInRight from "../components/SignInRight";
+import SignInLeft from "../components/com_signin/SignInLeft";
+import SignInRight from "../components/com_signin/SignInRight";
 
 export default function SignInPage() {
   return (
