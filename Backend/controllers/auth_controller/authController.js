@@ -64,7 +64,7 @@ const signin = async (req, res) => {
 
     // 1. Find user by email
     const [users] = await pool.execute(
-      'SELECT user_id, name, email, password FROM users WHERE email = ?',
+      'SELECT id, fullname, email, password FROM users WHERE email = ?',
       [email]
     );
 
@@ -83,8 +83,8 @@ const signin = async (req, res) => {
     // 3. Create JWT token
     const token = jwt.sign(
       {
-        user_id: user.user_id,
-        name: user.name,
+        id: user.id,
+        fullname: user.fullname,
         email: user.email,
       },
       JWT_SECRET,
@@ -96,8 +96,8 @@ const signin = async (req, res) => {
       message: 'Login successful',
       token,
       user: {
-        user_id: user.user_id,
-        name: user.name,
+        id: user.id,
+        fullname: user.fullname,
         email: user.email,
       },
     });

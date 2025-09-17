@@ -1,13 +1,37 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import google from "../../assets/google_log.png";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", { email, password });
+    
+    try {
+      const response = await axios.post("http://localhost:5000/api/auth/signin", {
+        email,
+        password,
+      });
+
+      // Save token if provided
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+
+      alert(response.data.message || "Login successful!");
+      navigate("/dashboard"); // change this to where you want to redirect
+    } catch (error) {
+      console.error("Error during signin:", error);
+      if (error.response && error.response.data) {
+        alert(error.response.data.error || "Signin failed!");
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
