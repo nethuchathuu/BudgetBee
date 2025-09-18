@@ -23,7 +23,7 @@ export default function SignInForm() {
       }
 
       alert(response.data.message || "Login successful!");
-      navigate("/dashboard"); // change this to where you want to redirect
+      navigate("/home");
     } catch (error) {
       console.error("Error during signin:", error);
       if (error.response && error.response.data) {

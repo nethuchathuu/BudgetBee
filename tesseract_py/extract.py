@@ -5,7 +5,7 @@ from PIL import Image
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Load the image from file
-image_path = "E:/FinalYearProject/tesseract_py/1.png"  # replace with your image path
+image_path = "E:/FinalYearProject/tesseract_py/bill3.jpg"  # replace with your image path
 image = Image.open(image_path)
 
 # Extract text
