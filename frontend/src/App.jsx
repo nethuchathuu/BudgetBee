@@ -4,7 +4,8 @@ import LandingPage from "./pages/LandingPage";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import HomePage from "./pages/HomePage";
-import './index.css'
+import './index.css';
+import Upload from "./pages/Upload";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/upload" element={<Upload />} />
       </Routes>
     </Router>
   );

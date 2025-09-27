@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, Bell, User } from "lucide-react";
 import logo from "../assets/logo.png";
 
+
 export default function NavBar() {
   const navigate = useNavigate();
   const [openSummary, setOpenSummary] = useState(false);
