@@ -9,35 +9,139 @@ from datetime import datetime
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 def categorize_item(item_name):
-    """Simple categorization function"""
+    """Enhanced categorization function with comprehensive 16 categories"""
     item = item_name.lower()
     
-    if any(word in item for word in ['milk', 'cheese', 'butter', 'yogurt', 'cream']):
-        return 'Dairy'
-    elif any(word in item for word in ['bread', 'rice', 'pasta', 'flour', 'wheat', 'cereal']):
-        return 'Grains'
-    elif any(word in item for word in ['apple', 'banana', 'orange', 'fruit', 'grape', 'mango']):
-        return 'Fruits'
-    elif any(word in item for word in ['tomato', 'onion', 'potato', 'carrot', 'vegetable', 'lettuce']):
-        return 'Vegetables'
-    elif any(word in item for word in ['chicken', 'beef', 'fish', 'meat', 'pork', 'lamb']):
-        return 'Meat'
-    elif any(word in item for word in ['soap', 'shampoo', 'detergent', 'toothpaste', 'tissue']):
+    # 1. Groceries / Food Items - Rice, flour, sugar, snacks, packaged food
+    if any(word in item for word in ['rice', 'flour', 'sugar', 'snacks', 'packaged food', 'bread', 'pasta', 'cereal', 'oats', 'noodles', 'grain', 'wheat', 'chips', 'cookies', 'crackers', 'nuts', 'chocolate', 'candy', 'biscuit', 'cake', 'pastry', 'canned', 'jar', 'bottle', 'packaged', 'preserved', 'frozen']) and not any(word in item for word in ['shampoo', 'soap', 'cream', 'medicine']):
+        return 'Groceries / Food Items'
+    
+    # 2. Vegetables & Fruits - Fresh produce
+    elif any(word in item for word in ['tomato', 'onion', 'potato', 'carrot', 'vegetable', 'lettuce', 'spinach', 'cabbage', 'broccoli', 'pepper', 'cucumber', 'eggplant', 'aubergine', 'apple', 'banana', 'orange', 'fruit', 'grape', 'mango', 'strawberry', 'pineapple', 'lemon', 'cherry', 'berries']) and not any(word in item for word in ['juice', 'drink']):
+        return 'Vegetables & Fruits'
+    
+    # 3. Meat, Fish - Protein items
+    elif any(word in item for word in ['chicken', 'beef', 'fish', 'meat', 'pork', 'lamb', 'turkey', 'salmon', 'tuna', 'seafood', 'shrimp', 'mutton', 'goat', 'duck']):
+        return 'Meat, Fish'
+    
+    # 4. Dairy Products - Milk, cheese, yogurt
+    elif any(word in item for word in ['milk', 'cheese', 'butter', 'yogurt', 'egg', 'eggs', 'dairy']) and not any(word in item for word in ['cream', 'ice cream']):
+        return 'Dairy Products'
+    
+    # 5. Beverages - Drinks, juices, soft drinks
+    elif any(word in item for word in ['juice', 'coffee', 'tea', 'soda', 'water', 'beer', 'wine', 'beverage', 'drink', 'cola', 'energy drink', 'soft drink', 'lemonade']) and not any(word in item for word in ['bill']):
+        return 'Beverages'
+    
+    # 6. Personal Care - Soap, shampoo, cosmetics
+    elif any(word in item for word in ['soap', 'shampoo', 'toothpaste', 'toothbrush', 'deodorant', 'perfume', 'lotion', 'cream', 'cosmetic', 'makeup', 'skincare', 'face wash', 'body wash', 'baby wipes', 'wipes']) and not any(word in item for word in ['ice cream', 'dairy', 'dish']):
         return 'Personal Care'
-    elif any(word in item for word in ['oil', 'salt', 'sugar', 'spice', 'sauce', 'vinegar']):
-        return 'Condiments'
+    
+    # 7. Household Items - Cleaning supplies, kitchen items
+    elif any(word in item for word in ['detergent', 'cleaner', 'tissue', 'toilet paper', 'paper towel', 'garbage bag', 'cleaning', 'bleach', 'dish soap', 'kitchen utensils', 'plates', 'cups', 'spoons', 'forks', 'knives']):
+        return 'Household Items'
+    
+    # 8. Health & Medicine - Medical supplies, vitamins
+    elif any(word in item for word in ['medicine', 'tablet', 'pill', 'vitamin', 'supplement', 'bandage', 'first aid', 'pharmacy', 'antiseptic', 'painkiller', 'cough syrup']):
+        return 'Health & Medicine'
+    
+    # 9. Electronics - Gadgets, appliances
+    elif any(word in item for word in ['phone', 'computer', 'laptop', 'tablet', 'headphone', 'cable', 'charger', 'battery', 'electronics', 'gadget', 'television', 'tv', 'radio', 'camera']) and not any(word in item for word in ['bill']):
+        return 'Electronics'
+    
+    # 10. Clothing & Accessories - Apparel, jewelry
+    elif any(word in item for word in ['shirt', 'pants', 'dress', 'shoes', 'sock', 'underwear', 'jacket', 'hat', 'bag', 'belt', 'watch', 'jewelry', 'clothing', 'jeans', 'skirt', 'blouse']):
+        return 'Clothing & Accessories'
+    
+    # 11. Transportation - Vehicle expenses, fuel
+    elif any(word in item for word in ['fuel', 'gas', 'petrol', 'diesel', 'bus fare', 'taxi', 'uber', 'train', 'metro', 'parking', 'toll', 'transport', 'car wash', 'oil change', 'vehicle maintenance']):
+        return 'Transportation'
+    
+    # 12. Education & Stationery - Books, school supplies
+    elif any(word in item for word in ['book', 'pen', 'pencil', 'notebook', 'paper', 'ruler', 'eraser', 'marker', 'highlighter', 'calculator', 'textbook', 'magazine', 'journal', 'school supplies']):
+        return 'Education & Stationery'
+    
+    # 13. Entertainment & Recreation - Games, sports, hobbies
+    elif any(word in item for word in ['game', 'toy', 'sport', 'ball', 'gym', 'fitness', 'exercise', 'recreation', 'hobby', 'football', 'cricket', 'tennis', 'movie ticket', 'concert']):
+        return 'Entertainment & Recreation'
+    
+    # 14. Utilities & Bills - Electricity, water, internet
+    elif any(word in item for word in ['electricity', 'water bill', 'gas bill', 'internet', 'phone bill', 'utility', 'electric bill', 'telephone', 'broadband', 'wifi', 'bill']) and any(word in item for word in ['bill', 'electricity', 'water', 'gas', 'internet', 'phone', 'electric', 'utility']):
+        return 'Utilities & Bills'
+    
+    # 15. Services - Professional services, repairs
+    elif any(word in item for word in ['service', 'repair', 'maintenance', 'delivery', 'shipping', 'consultation', 'professional service', 'haircut', 'salon', 'spa', 'cleaning service']):
+        return 'Services'
+    
+    # 16. Other / Miscellaneous - Items not fitting other categories
     else:
-        return 'Other'
+        return 'Other / Miscellaneous'
+
+def detect_currency(text):
+    """Detect currency from text"""
+    currency_patterns = {
+        'USD': [r'\$', r'USD', r'DOLLAR', r'DOLLARS'],
+        'EUR': [r'€', r'EUR', r'EURO', r'EUROS'],
+        'GBP': [r'£', r'GBP', r'POUND', r'POUNDS'],
+        'INR': [r'₹', r'INR', r'RUPEE', r'RUPEES', r'RS\.?\s', r'Rs\.?\s', r'RS$', r'Rs$'],
+        'JPY': [r'¥', r'JPY', r'YEN'],
+        'CAD': [r'CAD', r'C\$'],
+        'AUD': [r'AUD', r'A\$'],
+        'LKR': [r'LKR', r'SL\s?RS\.?', r'SL\s?Rs\.?', r'LANKAN\s?RUPEE'],
+    }
+    
+    text_upper = text.upper()
+    
+    # Count occurrences of each currency
+    currency_scores = {}
+    for currency, patterns in currency_patterns.items():
+        score = 0
+        for pattern in patterns:
+            matches = re.findall(pattern, text_upper)
+            score += len(matches)
+        if score > 0:
+            currency_scores[currency] = score
+    
+    # Return the most common currency, default to USD if $ is found, otherwise detect based on context
+    if currency_scores:
+        detected_currency = max(currency_scores, key=currency_scores.get)
+        return detected_currency
+    elif '$' in text:
+        return 'USD'
+    else:
+        # Try to detect from number patterns (less reliable but better than unknown)
+        if re.search(r'\d+\.\d{2}', text):  # Common in USD/EUR/GBP
+            return 'USD'  # Default to USD for decimal format
+        return 'USD'  # Default fallback
+
+def get_currency_symbol(currency_code):
+    """Get currency symbol from currency code"""
+    symbols = {
+        'USD': '$',
+        'EUR': '€', 
+        'GBP': '£',
+        'INR': '₹',
+        'JPY': '¥',
+        'CAD': 'C$',
+        'AUD': 'A$',
+        'LKR': 'Rs.'
+    }
+    return symbols.get(currency_code, currency_code)
 
 def parse_bill_text(text):
     """Parse bill text and extract structured information"""
     lines = [line.strip() for line in text.split('\n') if line.strip()]
     
+    # Detect currency
+    detected_currency = detect_currency(text)
+    currency_symbol = get_currency_symbol(detected_currency)
+    
     bill_info = {
         'shopName': '',
         'date': '',
         'items': [],
-        'total': 0
+        'total': 0,
+        'currency': detected_currency,
+        'currencySymbol': currency_symbol
     }
     
     # Extract shop name (usually first few non-empty lines)

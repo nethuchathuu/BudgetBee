@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavBar from "../components/NavHome";
 import UploadLeft from "../components/com_uploading/UploadLeft";
 import UploadRight from "../components/com_uploading/UploadRight";
@@ -7,8 +7,15 @@ export default function Upload() {
   const [billDate, setBillDate] = useState("");
   const [shopName, setShopName] = useState("");
   const [rows, setRows] = useState([]);
-  const [showDetails, setShowDetails] = useState(false);
   const [extractedText, setExtractedText] = useState("");
+  const [currency, setCurrency] = useState("$"); // Default currency symbol
+
+  // ✅ Ensure at least one empty row is there at the beginning
+  useEffect(() => {
+    if (rows.length === 0) {
+      setRows([{ category: "", product: "", price: "" }]);
+    }
+  }, []);
 
   // Add new row
   const addRow = () => setRows([...rows, { category: "", product: "", price: "" }]);
@@ -26,48 +33,47 @@ export default function Upload() {
   // Handle OCR results
   const handleOCRResults = (billInfo, rawText) => {
     setExtractedText(rawText);
-    
+
+    // Set currency from detected bill info
+    if (billInfo.currencySymbol) {
+      setCurrency(billInfo.currencySymbol);
+    } else {
+      setCurrency("$"); // Default fallback
+    }
+
     // Populate shop name
     if (billInfo.shopName) {
       setShopName(billInfo.shopName);
     }
-    
-    // Populate date (convert to YYYY-MM-DD format for date input)
+
+    // Populate date
     if (billInfo.date) {
       try {
-        // Try to parse different date formats
         let parsedDate = new Date(billInfo.date);
         if (isNaN(parsedDate)) {
-          // Try different parsing for DD/MM/YYYY or DD-MM-YYYY
           const dateParts = billInfo.date.split(/[-\/]/);
           if (dateParts.length === 3) {
             parsedDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
           }
         }
-        
         if (!isNaN(parsedDate)) {
-          const formattedDate = parsedDate.toISOString().split('T')[0];
+          const formattedDate = parsedDate.toISOString().split("T")[0];
           setBillDate(formattedDate);
         }
       } catch (error) {
-        console.log('Could not parse date:', billInfo.date);
+        console.log("Could not parse date:", billInfo.date);
       }
     }
-    
+
     // Populate items
     if (billInfo.items && billInfo.items.length > 0) {
-      const formattedRows = billInfo.items.map(item => ({
-        category: item.category || 'Other',
-        product: item.product || '',
-        price: item.price ? item.price.toString() : ''
+      const formattedRows = billInfo.items.map((item) => ({
+        category: item.category || "Other",
+        product: item.product || "",
+        price: item.price ? item.price.toString() : "",
       }));
       setRows(formattedRows);
-    } else {
-      // If no items detected, add one empty row
-      setRows([{ category: "", product: "", price: "" }]);
     }
-    
-    setShowDetails(true);
   };
 
   return (
@@ -77,7 +83,7 @@ export default function Upload() {
         <div className="flex bg-[#1a1f2c] rounded-2xl shadow-xl border border-emerald-400/20 w-full max-w-6xl min-h-[500px]">
           <UploadLeft onProcess={handleOCRResults} />
           <UploadRight
-            showDetails={showDetails}
+            showDetails={true}   // ✅ Always true → show immediately
             billDate={billDate}
             setBillDate={setBillDate}
             shopName={shopName}
@@ -86,10 +92,11 @@ export default function Upload() {
             handleRowChange={handleRowChange}
             addRow={addRow}
             getTotal={getTotal}
+            currency={currency}
           />
         </div>
-        
-        {/* Debug section for extracted text (optional) */}
+
+        {/* Debug section */}
         {extractedText && (
           <div className="mt-6 p-4 bg-[#1a1f2c] rounded-xl border border-emerald-400/20 w-full max-w-6xl">
             <h3 className="text-emerald-400 font-semibold mb-2">Extracted Text (Debug):</h3>

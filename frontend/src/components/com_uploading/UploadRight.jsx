@@ -11,6 +11,7 @@ export default function UploadRight({
   handleRowChange,
   addRow,
   getTotal,
+  currency = "$", // Default currency symbol
 }) {
   return (
     <div className="w-1/2 p-6 flex flex-col">
@@ -107,7 +108,7 @@ export default function UploadRight({
 
             {/* Total */}
             <div className="text-right font-semibold text-emerald-400">
-              Total: Rs. {getTotal()}
+              Total: {currency}{getTotal()}
             </div>
           </div>
         </div>
