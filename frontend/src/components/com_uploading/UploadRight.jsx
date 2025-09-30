@@ -1,6 +1,38 @@
 import React from "react";
 import { Plus } from "lucide-react";
 
+// Standardized categories matching the backend categorization system
+const STANDARD_CATEGORIES = [
+  "Vegetables",
+  "Fruits", 
+  "Meat & Fish",
+  "Dairy & Alternatives",
+  "Spices & Seasonings",
+  "Food Essentials",
+  "Grocery Essentials",
+  "Beverages",
+  "Cooked Food",
+  "Cleaning Items",
+  "Baby Products",
+  "Cosmetics, Beauty & Personal Care",
+  "Electronics & Appliances",
+  "Clothing & Footwear",
+  "Fashion",
+  "Stationery & Books",
+  "Pharmacy / Medical",
+  "Furniture & Home Needs",
+  "Household Items",
+  "Bakery",
+  "Snacks & Confectionery",
+  "Ice Cream & Frozen Foods",
+  "Automotive",
+  "Sports & Outdoors",
+  "Garden & Outdoor",
+  "Pet Care",
+  "Seasonal & Holiday",
+  "Others / Miscellaneous"
+];
+
 export default function UploadRight({
   showDetails,
   billDate,
@@ -62,13 +94,18 @@ export default function UploadRight({
                   {rows.map((row, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-[#0c111c]/30' : ''}>
                       <td className="border-b border-emerald-400/20 px-3 py-2">
-                        <input
-                          type="text"
+                        <select
                           value={row.category}
                           onChange={(e) => handleRowChange(i, "category", e.target.value)}
-                          placeholder="e.g., Food"
-                          className="w-full bg-transparent outline-none text-white"
-                        />
+                          className="w-full bg-[#0c111c] border border-emerald-400/30 rounded px-2 py-1 outline-none text-white focus:border-emerald-400"
+                        >
+                          {!row.category && <option value="">Select category...</option>}
+                          {STANDARD_CATEGORIES.map((category) => (
+                            <option key={category} value={category} className="bg-[#0c111c]">
+                              {category}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="border-b border-emerald-400/20 px-3 py-2">
                         <input
