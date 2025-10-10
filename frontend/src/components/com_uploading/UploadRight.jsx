@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 const STANDARD_CATEGORIES = [
   "Vegetables",
   "Fruits", 
-  "Meat & Fish",
+  "Meat, Fish & Eggs",
   "Dairy & Alternatives",
   "Spices & Seasonings",
   "Food Essentials",
@@ -44,6 +44,10 @@ export default function UploadRight({
   addRow,
   getTotal,
   currency = "$", // Default currency symbol
+  onSave,
+  isValidForSave,
+  isLoading,
+  saveMessage,
 }) {
   return (
     <div className="w-1/2 p-6 flex flex-col">
@@ -144,9 +148,38 @@ export default function UploadRight({
             </button>
 
             {/* Total */}
-            <div className="text-right font-semibold text-emerald-400">
-              Total: {currency}{getTotal()}
+            <div className="text-right font-semibold text-emerald-400 mb-4">
+              Total: {currency}{getTotal().toFixed(2)}
             </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={onSave}
+                disabled={!isValidForSave() || isLoading}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  isValidForSave() && !isLoading
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 transform hover:scale-105 shadow-lg'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  'Save Expenses'
+                )}
+              </button>
+            </div>
+
+            {/* Validation hint */}
+            {!isValidForSave() && (
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                Fill at least one complete row to enable save button
+              </p>
+            )}
           </div>
         </div>
       ) : (

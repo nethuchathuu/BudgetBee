@@ -5,7 +5,7 @@ const path = require('path');
 const { pool } = require('../../config/db');
 
 // Environment variable for JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
+const JWT_SECRET = process.env.JWT_SECRET ;
 
 
 // Signup function 

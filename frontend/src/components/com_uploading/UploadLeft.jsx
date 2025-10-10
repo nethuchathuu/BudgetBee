@@ -35,26 +35,43 @@ export default function UploadLeft({ onProcess }) {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
+      console.log('Uploading image for OCR processing...');
+      
       const response = await fetch('http://localhost:5000/api/ocr/extract', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('Failed to process image');
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Server error (${response.status}): ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('OCR result:', result);
       
       if (result.success) {
         // Pass the OCR results to parent component
         onProcess(result.billInfo, result.extractedText);
+        alert('Image processed successfully!');
       } else {
-        throw new Error('OCR processing failed');
+        throw new Error(result.error || 'OCR processing failed');
       }
     } catch (error) {
       console.error('Error processing image:', error);
-      alert('Failed to process image. Please try again.');
+      
+      // Provide more specific error messages
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        alert('Cannot connect to server. Please make sure the backend server is running on http://localhost:5001');
+      } else if (error.message.includes('Server error')) {
+        alert(`Server error: ${error.message}`);
+      } else {
+        alert(`Failed to process image: ${error.message}. Please try again.`);
+      }
     } finally {
       setIsProcessing(false);
     }

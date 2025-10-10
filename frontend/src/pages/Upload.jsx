@@ -9,6 +9,8 @@ export default function Upload() {
   const [rows, setRows] = useState([]);
   const [extractedText, setExtractedText] = useState("");
   const [currency, setCurrency] = useState("$"); // Default currency symbol
+  const [isLoading, setIsLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   // ✅ Ensure at least one empty row is there at the beginning
   useEffect(() => {
@@ -25,10 +27,106 @@ export default function Upload() {
     const updated = [...rows];
     updated[index][field] = value;
     setRows(updated);
+    // Clear save message when user starts editing
+    if (saveMessage) setSaveMessage("");
   };
 
   // Calculate total
   const getTotal = () => rows.reduce((acc, row) => acc + (parseFloat(row.price) || 0), 0);
+
+  // Validation: Check if at least one row is properly filled
+  const isValidForSave = () => {
+    return rows.some(row => 
+      row.category.trim() && 
+      row.product.trim() && 
+      row.price && 
+      !isNaN(parseFloat(row.price)) && 
+      parseFloat(row.price) > 0
+    );
+  };
+
+  // Get user ID from localStorage (assuming it's stored after login)
+  const getUserId = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.id || user.user_id || 1; // Fallback to 1 for testing
+  };
+
+  // Save expenses to backend
+  const handleSave = async () => {
+    if (!isValidForSave()) {
+      setSaveMessage("Please fill at least one complete row (category, product, and price)");
+      return;
+    }
+
+    if (!billDate) {
+      setSaveMessage("Please select a bill date");
+      return;
+    }
+
+    setIsLoading(true);
+    setSaveMessage("");
+
+    try {
+      const user_id = getUserId();
+      const token = localStorage.getItem('token');
+
+      // Filter out empty rows
+      const validRows = rows.filter(row => 
+        row.category.trim() && 
+        row.product.trim() && 
+        row.price && 
+        !isNaN(parseFloat(row.price)) && 
+        parseFloat(row.price) > 0
+      );
+
+      // Save each row as a separate expense
+      const savePromises = validRows.map(async (row) => {
+        const expenseData = {
+          user_id: user_id,
+          bill_date: billDate,
+          shop_name: shopName || null,
+          category_name: row.category,
+          product_name: row.product,
+          price: parseFloat(row.price)
+        };
+
+        const response = await fetch('http://localhost:5000/api/expenses/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(expenseData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to save expense');
+        }
+
+        return response.json();
+      });
+
+      await Promise.all(savePromises);
+
+      setSaveMessage(`Successfully saved ${validRows.length} expense(s)!`);
+      
+      // Reset form after successful save
+      setTimeout(() => {
+        setRows([{ category: "", product: "", price: "" }]);
+        setBillDate("");
+        setShopName("");
+        setExtractedText("");
+        setSaveMessage("");
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error saving expenses:', error);
+      setSaveMessage(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle OCR results
   const handleOCRResults = (billInfo, rawText) => {
@@ -93,6 +191,10 @@ export default function Upload() {
             addRow={addRow}
             getTotal={getTotal}
             currency={currency}
+            onSave={handleSave}
+            isValidForSave={isValidForSave}
+            isLoading={isLoading}
+            saveMessage={saveMessage}
           />
         </div>
 
@@ -103,6 +205,17 @@ export default function Upload() {
             <pre className="text-gray-300 text-sm bg-[#0c111c] p-3 rounded overflow-auto max-h-60">
               {extractedText}
             </pre>
+          </div>
+        )}
+
+        {/* Save Status Message */}
+        {saveMessage && (
+          <div className={`mt-4 p-4 rounded-xl w-full max-w-6xl text-center font-semibold ${
+            saveMessage.includes('Error') || saveMessage.includes('Please') 
+              ? 'bg-red-600/20 border border-red-400/30 text-red-300' 
+              : 'bg-green-600/20 border border-green-400/30 text-green-300'
+          }`}>
+            {saveMessage}
           </div>
         )}
       </div>

@@ -36,13 +36,13 @@ def categorize_item(item_name):
     elif any(word in item for word in ['apple', 'banana', 'orange', 'fruit', 'grape', 'mango', 'strawberry', 'pineapple', 'lemon', 'cherry', 'berries', 'kiwi', 'avocado', 'lime', 'papaya', 'watermelon', 'melon']):
         return 'Fruits'
     
-    # Dairy & Alternatives (check before Meat & Fish to catch eggs)
-    elif any(word in item for word in ['milk', 'cheese', 'butter', 'yogurt', 'curd', 'plant milk', 'almond milk', 'soy milk', 'condensed milk', 'milk powder', 'ice cream', 'cream', 'dairy', 'egg', 'eggs']) and not any(word in item for word in ['cracker']):
-        return 'Dairy & Alternatives'
+    # Meat, Fish & Eggs (including eggs)
+    elif any(word in item for word in ['chicken', 'beef', 'fish', 'meat', 'pork', 'lamb', 'turkey', 'salmon', 'tuna', 'seafood', 'shrimp', 'mutton', 'goat', 'duck', 'sausage', 'bacon', 'ham', 'dry fish', 'crab', 'prawns', 'egg', 'eggs']) and not any(word in item for word in ['shampoo']):
+        return 'Meat, Fish & Eggs'
     
-    # Meat & Fish (exclude eggs which are dairy)
-    elif any(word in item for word in ['chicken', 'beef', 'fish', 'meat', 'pork', 'lamb', 'turkey', 'salmon', 'tuna', 'seafood', 'shrimp', 'mutton', 'goat', 'duck', 'sausage', 'bacon', 'ham', 'dry fish', 'crab', 'prawns']) and not any(word in item for word in ['shampoo', 'egg']):
-        return 'Meat & Fish'
+    # Dairy & Alternatives (remove eggs from here)
+    elif any(word in item for word in ['milk', 'cheese', 'butter', 'yogurt', 'curd', 'plant milk', 'almond milk', 'soy milk', 'condensed milk', 'milk powder', 'ice cream', 'cream', 'dairy']) and not any(word in item for word in ['cracker']):
+        return 'Dairy & Alternatives'
     
     # Spices & Seasonings
     elif any(word in item for word in ['chili', 'turmeric', 'pepper', 'cinnamon', 'cardamom', 'cloves', 'spice', 'masala', 'salt', 'seasoning', 'curry powder', 'garam masala', 'cumin', 'coriander', 'nutmeg', 'fennel', 'black pepper']):
