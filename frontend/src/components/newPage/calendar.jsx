@@ -1,11 +1,20 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
+const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
+  const navigate = useNavigate();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(
-    selectedDate ? new Date(selectedDate + 'T00:00:00') : today
+    selectedDate ? new Date(selectedDate) : today
   );
+
+  // Helper function to get week number of month
+  const getWeekOfMonth = (date) => {
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstWeekday = firstDayOfMonth.getDay();
+    return Math.ceil((date.getDate() + firstWeekday) / 7);
+  };
 
   // Get the first day of the month and calculate calendar grid
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -20,14 +29,6 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
   // Days of the week
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Helper function to format date as YYYY-MM-DD without timezone issues
-  const formatDateLocal = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   // Generate calendar days
   const calendarDays = useMemo(() => {
     const days = [];
@@ -38,7 +39,7 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
       const date = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), day);
       days.push({
         day,
-        date: formatDateLocal(date),
+        date: date.toISOString().split('T')[0],
         isCurrentMonth: false,
         isToday: false,
         isSelected: false
@@ -48,8 +49,8 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
     // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      const dateString = formatDateLocal(date);
-      const isToday = dateString === formatDateLocal(today);
+      const dateString = date.toISOString().split('T')[0];
+      const isToday = dateString === today.toISOString().split('T')[0];
       const isSelected = selectedDate && dateString === selectedDate;
 
       days.push({
@@ -68,7 +69,7 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day);
       days.push({
         day,
-        date: formatDateLocal(date),
+        date: date.toISOString().split('T')[0],
         isCurrentMonth: false,
         isToday: false,
         isSelected: false
@@ -78,35 +79,73 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
     return days;
   }, [currentDate, selectedDate, daysInMonth, daysFromPrevMonth, today]);
 
-  // Calculate week numbers within the month
+  // Get unique weeks with simple sequential numbering (1, 2, 3, 4, 5, 6)
   const weeks = useMemo(() => {
-    const weekNumbers = [];
-    for (let i = 0; i < 6; i++) {
-      weekNumbers.push(i + 1);
-    }
-    return weekNumbers;
+    return [1, 2, 3, 4, 5, 6];
   }, []);
 
   const formatMonth = (date) => {
-    return date.toLocaleDateString('en-LK', { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'long' });
+  };
+
+  const formatYear = (date) => {
+    return date.getFullYear();
   };
 
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     setCurrentDate(newDate);
-    onMonthChange?.(newDate.getFullYear(), newDate.getMonth() + 1);
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
     setCurrentDate(newDate);
-    onMonthChange?.(newDate.getFullYear(), newDate.getMonth() + 1);
   };
 
   const handleDateClick = (day) => {
     if (day.isCurrentMonth) {
       onDateSelect?.(day.date);
+      onClose?.();
+      // Navigate to DailySum component
+      navigate('/daily-summary', { state: { selectedDate: new Date(day.date) } });
     }
+  };
+
+  const handleMonthClick = () => {
+    onClose?.();
+    // Navigate to MonthlySum component
+    navigate('/monthly-summary', { 
+      state: { selectedMonth: currentDate } 
+    });
+  };
+
+  const handleYearClick = () => {
+    onClose?.();
+    // Navigate to YearlySum component
+    navigate('/yearly-summary', { 
+      state: { selectedYear: currentDate.getFullYear() } 
+    });
+  };
+
+  // Helper function to get start of week for a given week number
+  const getStartOfWeek = (month, weekNumber) => {
+    const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+    const startOfFirstWeek = new Date(firstDay);
+    startOfFirstWeek.setDate(firstDay.getDate() - firstDay.getDay() + 1); // Monday as start
+    
+    const targetWeek = new Date(startOfFirstWeek);
+    targetWeek.setDate(startOfFirstWeek.getDate() + (weekNumber - 1) * 7);
+    
+    return targetWeek;
+  };
+
+  const handleWeekClick = (weekNumber) => {
+    onClose?.();
+    const weekStart = getStartOfWeek(currentDate, weekNumber);
+    // Navigate to WeeklySum component
+    navigate('/weekly-summary', { 
+      state: { selectedWeek: weekStart } 
+    });
   };
 
   const handleKeyDown = (event, day) => {
@@ -116,105 +155,162 @@ const Calendar = ({ selectedDate, onDateSelect, onMonthChange }) => {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200">
-      {/* Header */}
-      <div className="bg-emerald-50 p-4 rounded-t-xl border-b border-emerald-100">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handlePrevMonth}
-            className="text-emerald-600 hover:text-emerald-800 p-2 rounded-lg hover:bg-emerald-100 transition-colors"
-            aria-label="Previous month"
+    <div className="fixed inset-0 z-50 pointer-events-none">
+      {/* Glass Morphism Overlay */}
+      <div 
+        className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-white/20 via-emerald-100/30 to-blue-100/20 pointer-events-auto"
+        onClick={onClose}
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(16,185,129,0.1), rgba(59,130,246,0.1))',
+          backdropFilter: 'blur(15px)',
+          WebkitBackdropFilter: 'blur(15px)'
+        }}
+      />
+      
+      {/* Calendar Dropdown - Positioned relative to button */}
+      <div className="absolute top-20 right-6 pointer-events-auto">
+        <div 
+          className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 w-[420px] overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8))',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3)'
+          }}
+        >
+          {/* Glassmorphism Header */}
+          <div 
+            className="flex items-center justify-between p-6 border-b border-white/20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.1))',
+            }}
           >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          
-          <h2 className="text-emerald-800 font-semibold text-lg">
-            {formatMonth(currentDate)}
-          </h2>
-          
-          <button
-            onClick={handleNextMonth}
-            className="text-emerald-600 hover:text-emerald-800 p-2 rounded-lg hover:bg-emerald-100 transition-colors"
-            aria-label="Next month"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="p-4">
-        {/* Week Labels and Days Grid */}
-        <div className="grid grid-cols-8 gap-1">
-          {/* Week Label Header */}
-          <div className="text-center text-xs font-semibold text-gray-500 py-2">
-            Week
-          </div>
-          
-          {/* Weekday Headers */}
-          {weekDays.map((day) => (
-            <div
-              key={day}
-              className="bg-gray-50 p-2 text-center text-sm font-medium text-gray-600 rounded"
+            <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+              Calendar
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 backdrop-blur-sm"
+              aria-label="Close calendar"
             >
-              {day}
-            </div>
-          ))}
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
 
-          {/* Calendar Days with Week Labels */}
-          {weeks.map((weekNumber) => (
-            <React.Fragment key={weekNumber}>
-              {/* Week Label */}
-              <div className="text-center text-xs text-gray-500 py-2 flex items-center justify-center">
-                Week {weekNumber}
+          {/* Calendar Content */}
+          <div className="p-6">
+            {/* Month/Year Navigation */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={handlePrevMonth}
+                className="p-2 hover:bg-white/30 rounded-lg transition-all duration-200 backdrop-blur-sm"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="h-5 w-5 text-emerald-600" />
+              </button>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleMonthClick}
+                  className="text-lg font-semibold text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-white/20"
+                >
+                  {formatMonth(currentDate)}
+                </button>
+                <button
+                  onClick={handleYearClick}
+                  className="text-lg font-semibold text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-white/20"
+                >
+                  {formatYear(currentDate)}
+                </button>
               </div>
               
-              {/* Days for this week */}
-              {calendarDays.slice((weekNumber - 1) * 7, weekNumber * 7).map((day, dayIndex) => {
-                let buttonClass = "w-full h-10 rounded-lg transition-all duration-200 text-sm font-medium";
-                
-                if (day.isCurrentMonth) {
-                  buttonClass += " text-gray-700 hover:bg-emerald-50";
-                } else {
-                  buttonClass += " text-gray-400 hover:text-gray-600";
-                }
-                
-                if (day.isToday && day.isSelected) {
-                  buttonClass += " bg-emerald-600 text-white font-bold hover:bg-emerald-700";
-                } else if (day.isToday) {
-                  buttonClass += " bg-emerald-500 text-white font-bold hover:bg-emerald-600";
-                } else if (day.isSelected) {
-                  buttonClass += " bg-emerald-400 text-white font-semibold hover:bg-emerald-500";
-                }
+              <button
+                onClick={handleNextMonth}
+                className="p-2 hover:bg-white/30 rounded-lg transition-all duration-200 backdrop-blur-sm"
+                aria-label="Next month"
+              >
+                <ChevronRight className="h-5 w-5 text-emerald-600" />
+              </button>
+            </div>
 
-                return (
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-8 gap-1">
+              {/* Week Label Header */}
+              <div className="text-center text-xs font-semibold text-gray-500 py-2">
+                Week
+              </div>
+              
+              {/* Weekday Headers */}
+              {weekDays.map((day) => (
+                <div
+                  key={day}
+                  className="bg-gradient-to-br from-emerald-50/80 to-blue-50/80 backdrop-blur-sm p-2 text-center text-sm font-medium text-emerald-700 rounded border border-white/30"
+                >
+                  {day}
+                </div>
+              ))}
+
+              {/* Calendar Days with Week Labels */}
+              {weeks.map((weekNumber, weekIndex) => (
+                <React.Fragment key={weekIndex}>
+                  {/* Week Number */}
                   <button
-                    key={`${day.date}-${dayIndex}`}
-                    onClick={() => handleDateClick(day)}
-                    onKeyDown={(e) => handleKeyDown(e, day)}
-                    className={buttonClass}
-                    disabled={!day.isCurrentMonth}
-                    aria-label={`Select ${day.date}`}
+                    onClick={() => handleWeekClick(weekNumber)}
+                    className="text-center text-xs text-emerald-600 hover:text-emerald-800 hover:bg-white/30 py-2 rounded transition-all duration-200 cursor-pointer font-medium backdrop-blur-sm border border-white/20"
                   >
-                    {day.day}
+                    {weekNumber}
                   </button>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
+                  
+                  {/* Days for this week */}
+                  {calendarDays.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => {
+                    let buttonClass = "w-full h-10 rounded-lg transition-all duration-300 text-sm font-medium backdrop-blur-sm border border-white/20";
+                    
+                    if (day.isCurrentMonth) {
+                      buttonClass += " text-gray-700 hover:bg-white/40 hover:scale-105";
+                    } else {
+                      buttonClass += " text-gray-400 hover:text-gray-600";
+                    }
+                    
+                    if (day.isToday && day.isSelected) {
+                      buttonClass += " bg-gradient-to-br from-emerald-600 to-emerald-700 text-white font-bold hover:from-emerald-700 hover:to-emerald-800 shadow-lg";
+                    } else if (day.isToday) {
+                      buttonClass += " bg-gradient-to-br from-emerald-500 to-emerald-600 text-white font-bold hover:from-emerald-600 hover:to-emerald-700 shadow-lg";
+                    } else if (day.isSelected) {
+                      buttonClass += " bg-gradient-to-br from-emerald-400 to-emerald-500 text-white font-semibold hover:from-emerald-500 hover:to-emerald-600 shadow-md";
+                    }
 
-      {/* Footer with Today's Date */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="text-center text-sm text-gray-600">
-          <button
-            onClick={() => handleDateClick({ date: formatDateLocal(today), isCurrentMonth: true })}
-            className="text-emerald-600 hover:text-emerald-800 font-medium"
-          >
-            Go to Today ({today.toLocaleDateString('en-LK', { day: '2-digit', month: 'short' })})
-          </button>
+                    return (
+                      <button
+                        key={`${day.date}-${dayIndex}`}
+                        onClick={() => handleDateClick(day)}
+                        onKeyDown={(e) => handleKeyDown(e, day)}
+                        className={buttonClass}
+                        disabled={!day.isCurrentMonth}
+                        aria-label={`Select ${day.date}`}
+                      >
+                        {day.day}
+                      </button>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Footer with Today's Date */}
+            <div className="mt-6 pt-4 border-t border-white/20">
+              <div className="text-center text-sm text-gray-600">
+                <button
+                  onClick={() => handleDateClick({ date: today.toISOString().split('T')[0], isCurrentMonth: true })}
+                  className="text-emerald-600 hover:text-emerald-800 font-medium px-3 py-1 rounded-lg hover:bg-white/20 transition-all duration-200"
+                >
+                  Go to Today ({today.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })})
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

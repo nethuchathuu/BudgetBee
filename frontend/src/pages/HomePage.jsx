@@ -172,19 +172,16 @@ export default function HomePage() {
                       className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                       <CalendarIcon size={20} />
-                      Select Date
+                      Calendar
                     </button>
                     
-                    {/* Calendar Dropdown */}
-                    {showCalendar && (
-                      <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200">
-                        <Calendar 
-                          selectedDate={selectedDate}
-                          onDateSelect={handleDateClick}
-                          onDateClick={handleDateClick}
-                        />
-                      </div>
-                    )}
+                    {/* Calendar Modal */}
+                    <Calendar 
+                      selectedDate={selectedDate}
+                      onDateSelect={handleDateClick}
+                      onClose={handleCalendarToggle}
+                      isOpen={showCalendar}
+                    />
                   </div>
                 </div>
               </div>
