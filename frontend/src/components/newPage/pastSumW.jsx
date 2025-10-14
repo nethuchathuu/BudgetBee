@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
-import { ChevronLeft, ChevronRight, Download, Calendar, TrendingUp, TrendingDown, DollarSign, ShoppingCart } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { ChevronLeft, ChevronRight, Download, Calendar, Wallet, TrendingUp, CalendarDays, BarChart3, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const PastSumW = ({ expenses = [], onWeekChange }) => {
+  const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const summaryRef = useRef(null);
 
-  // Sample weekly data
+  // Sample weekly data with consistent colors
   const mockWeeklyData = [
     { day: 'Mon', amount: 45.50, transactions: 3 },
     { day: 'Tue', amount: 32.20, transactions: 2 },
@@ -20,16 +22,19 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
   ];
 
   const mockCategoryData = [
-    { category: 'Groceries', amount: 245.50, color: '#8B5CF6' },
-    { category: 'Transport', amount: 84.00, color: '#EF4444' },
-    { category: 'Food & Drink', amount: 143.75, color: '#F59E0B' },
-    { category: 'Entertainment', amount: 75.00, color: '#10B981' },
-    { category: 'Utilities', amount: 45.45, color: '#3B82F6' }
+    { category: 'Groceries', amount: 245.50, color: '#4A90E2' },
+    { category: 'Transport', amount: 84.00, color: '#2ECC71' },
+    { category: 'Food & Dining', amount: 143.75, color: '#E74C3C' },
+    { category: 'Entertainment', amount: 75.00, color: '#F39C12' },
+    { category: 'Utilities', amount: 45.45, color: '#9B59B6' }
   ];
 
   const totalSpent = mockWeeklyData.reduce((sum, item) => sum + item.amount, 0);
-  const totalTransactions = mockWeeklyData.reduce((sum, item) => sum + item.transactions, 0);
   const avgDailySpend = totalSpent / 7;
+  const topCategory = mockCategoryData.length > 0 ? 
+    mockCategoryData.reduce((prev, current) => (prev.amount > current.amount) ? prev : current) : 
+    { category: 'N/A', amount: 0 };
+  const highestExpenseDay = mockWeeklyData.reduce((prev, current) => (prev.amount > current.amount) ? prev : current);
 
   const getWeekRange = (date) => {
     const start = new Date(date);
@@ -48,7 +53,7 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
 
   const navigateWeek = (direction) => {
     const newDate = new Date(selectedWeek);
-    newDate.setDate(selectedWeek.getDate() + (direction * 7));
+    newDate.setDate(newDate.getDate() + (direction * 7));
     setSelectedWeek(newDate);
     if (onWeekChange) onWeekChange(newDate);
   };
@@ -61,7 +66,7 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#F8F9FA'
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -70,22 +75,9 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
       const imgWidth = 210;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Add multiple pages if content is too long
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= 297; // A4 height in mm
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-      }
-
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       const weekRange = getWeekRange(selectedWeek);
-      pdf.save(`weekly-summary-${weekRange.start}-to-${weekRange.end}.pdf`);
+      pdf.save(`past-weekly-summary-${weekRange.start}-${weekRange.end}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
     }
@@ -96,14 +88,23 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-800">{label}</p>
-          <p className="text-purple-600 font-semibold">
-            ${payload[0].value.toFixed(2)}
+          <p className="text-blue-600 font-semibold">
+            Rs. {payload[0].value.toFixed(2)}
           </p>
-          {payload[0].payload.transactions && (
-            <p className="text-gray-600 text-sm">
-              {payload[0].payload.transactions} transactions
-            </p>
-          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const PieTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-800">{payload[0].name}</p>
+          <p className="text-blue-600 font-semibold">
+            Rs. {payload[0].value.toFixed(2)}
+          </p>
         </div>
       );
     }
@@ -113,134 +114,182 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
   const weekRange = getWeekRange(selectedWeek);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
-      <div ref={summaryRef} className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+      <div ref={summaryRef} className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Navigation Header */}
+        <div className="bg-white rounded-xl p-6" style={{ boxShadow: '0 3px 15px rgba(0,0,0,0.1)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Weekly Summary
-            </h1>
+            {/* Back Button */}
+            <button
+              onClick={() => navigate('/home')}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
+              style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
+            >
+              <ArrowLeft size={20} />
+              Back to Home
+            </button>
+
+            {/* Page Title */}
+            <h1 className="text-2xl font-bold text-gray-800">Past Weekly Summary</h1>
+            
+            <div></div> {/* Spacer for flexbox */}
+          </div>
+        </div>
+        
+        {/* Week Navigation & PDF Download */}
+        <div className="bg-white rounded-xl p-6" style={{ boxShadow: '0 3px 15px rgba(0,0,0,0.1)' }}>
+          <div className="flex items-center justify-between mb-4">
+            {/* Week Navigation */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigateWeek(-1)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="text-gray-600" size={24} />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <Calendar style={{ color: '#4A90E2' }} size={20} />
+                <span className="text-xl font-semibold text-gray-800">
+                  {weekRange.start} - {weekRange.end}
+                </span>
+              </div>
+
+              <button
+                onClick={() => navigateWeek(1)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronRight className="text-gray-600" size={24} />
+              </button>
+            </div>
+
+            {/* PDF Download */}
             <button
               onClick={generatePDF}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
+              style={{ backgroundColor: '#4A90E2' }}
             >
               <Download size={20} />
               Download PDF
             </button>
           </div>
-
-          {/* Week Navigation */}
-          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-            <button
-              onClick={() => navigateWeek(-1)}
-              className="p-2 hover:bg-white rounded-lg transition-colors"
-            >
-              <ChevronLeft className="text-gray-600" size={24} />
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <Calendar className="text-purple-600" size={20} />
-              <span className="text-xl font-semibold text-gray-800">
-                {weekRange.start} - {weekRange.end}
-              </span>
-            </div>
-
-            <button
-              onClick={() => navigateWeek(1)}
-              className="p-2 hover:bg-white rounded-lg transition-colors"
-            >
-              <ChevronRight className="text-gray-600" size={24} />
-            </button>
-          </div>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Spent</p>
-                <p className="text-2xl font-bold text-gray-800">${totalSpent.toFixed(2)}</p>
-              </div>
-              <div className="p-3 bg-red-100 rounded-full">
-                <DollarSign className="text-red-600" size={24} />
+        {/* Summary Cards - 4 Cards for Weekly */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Spent Card */}
+          <div className="bg-white rounded-xl p-6 text-center" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 rounded-full" style={{ backgroundColor: '#E3F2FD' }}>
+                <Wallet style={{ color: '#4A90E2' }} size={24} />
               </div>
             </div>
+            <h3 className="text-gray-600 text-sm font-semibold mb-2" style={{ fontWeight: '600' }}>
+              Total Spent
+            </h3>
+            <p className="font-bold text-gray-800" style={{ fontSize: '1.1rem' }}>
+              Rs. {totalSpent.toFixed(2)}
+            </p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Transactions</p>
-                <p className="text-2xl font-bold text-gray-800">{totalTransactions}</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <ShoppingCart className="text-blue-600" size={24} />
+          {/* Top Category Card */}
+          <div className="bg-white rounded-xl p-6 text-center" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 rounded-full" style={{ backgroundColor: '#E8F5E8' }}>
+                <TrendingUp style={{ color: '#2ECC71' }} size={24} />
               </div>
             </div>
+            <h3 className="text-gray-600 text-sm font-semibold mb-2" style={{ fontWeight: '600' }}>
+              Top Category
+            </h3>
+            <p className="text-lg font-bold text-gray-800">{topCategory.category}</p>
+            <p className="text-sm text-gray-600">Rs. {topCategory.amount.toFixed(2)}</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Daily Average</p>
-                <p className="text-2xl font-bold text-gray-800">${avgDailySpend.toFixed(2)}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <TrendingUp className="text-green-600" size={24} />
+          {/* Highest Expense Day Card */}
+          <div className="bg-white rounded-xl p-6 text-center" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 rounded-full" style={{ backgroundColor: '#FFEBEE' }}>
+                <CalendarDays style={{ color: '#E74C3C' }} size={24} />
               </div>
             </div>
+            <h3 className="text-gray-600 text-sm font-semibold mb-2" style={{ fontWeight: '600' }}>
+              Highest Expense Day
+            </h3>
+            <p className="text-lg font-bold text-gray-800">{highestExpenseDay.day}</p>
+            <p className="text-sm text-gray-600">Rs. {highestExpenseDay.amount.toFixed(2)}</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Highest Day</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  ${Math.max(...mockWeeklyData.map(item => item.amount)).toFixed(2)}
-                </p>
-              </div>
-              <div className="p-3 bg-orange-100 rounded-full">
-                <TrendingUp className="text-orange-600" size={24} />
+          {/* Daily Average Card */}
+          <div className="bg-white rounded-xl p-6 text-center" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 rounded-full" style={{ backgroundColor: '#FFF3E0' }}>
+                <BarChart3 style={{ color: '#F39C12' }} size={24} />
               </div>
             </div>
+            <h3 className="text-gray-600 text-sm font-semibold mb-2" style={{ fontWeight: '600' }}>
+              Daily Average
+            </h3>
+            <p className="font-bold text-gray-800" style={{ fontSize: '1.1rem' }}>
+              Rs. {avgDailySpend.toFixed(2)}
+            </p>
           </div>
         </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Daily Spending Trend */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          {/* Bar Chart */}
+          <div className="bg-white rounded-xl p-6" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Daily Spending Trend
+              Weekly Expenses by Category
             </h3>
-            <div style={{ width: '100%', height: 300 }}>
+            <div style={{ width: '100%', height: 320 }}>
               <ResponsiveContainer>
-                <LineChart data={mockWeeklyData}>
+                <BarChart data={mockCategoryData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                  <XAxis 
+                    dataKey="category" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
+                  <Bar 
                     dataKey="amount" 
-                    stroke="#8B5CF6" 
-                    strokeWidth={3}
-                    dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
+                    fill="#4A90E2"
+                    radius={[8, 8, 0, 0]}
                   />
-                </LineChart>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Category Distribution */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          {/* Pie Chart */}
+          <div className="bg-white rounded-xl p-6" style={{ 
+            boxShadow: '0 3px 15px rgba(0,0,0,0.1)', 
+            borderRadius: '15px' 
+          }}>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
-              Category Distribution
+              Weekly Spending Distribution
             </h3>
-            <div style={{ width: '100%', height: 300 }}>
+            <div style={{ width: '100%', height: 320 }}>
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
@@ -248,8 +297,9 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
-                    outerRadius={100}
+                    outerRadius={120}
                     dataKey="amount"
+                    nameKey="category"
                     stroke="#ffffff"
                     strokeWidth={2}
                   >
@@ -257,94 +307,10 @@ const PastSumW = ({ expenses = [], onWeekChange }) => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']}
-                    labelStyle={{ color: '#374151' }}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    formatter={(value, entry) => (
-                      <span style={{ color: entry.color }}>
-                        {value}: ${entry.payload.amount.toFixed(2)}
-                      </span>
-                    )}
-                  />
+                  <Tooltip content={<PieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
-
-        {/* Daily Breakdown Bar Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Daily Expenses Breakdown
-          </h3>
-          <div style={{ width: '100%', height: 350 }}>
-            <ResponsiveContainer>
-              <BarChart data={mockWeeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar 
-                  dataKey="amount" 
-                  fill="url(#weeklyGradient)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <defs>
-                  <linearGradient id="weeklyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Category Details */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Category Breakdown
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockCategoryData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span className="font-medium text-gray-800">{item.category}</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-semibold text-gray-800">${item.amount.toFixed(2)}</span>
-                  <span className="text-sm text-gray-500 ml-2">
-                    ({((item.amount / mockCategoryData.reduce((sum, cat) => sum + cat.amount, 0)) * 100).toFixed(1)}%)
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Daily Details */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Daily Summary
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {mockWeeklyData.map((day, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-800">{day.day}</h4>
-                  <span className="text-sm text-gray-600">{day.transactions} transactions</span>
-                </div>
-                <p className="text-xl font-bold text-purple-600">${day.amount.toFixed(2)}</p>
-              </div>
-            ))}
           </div>
         </div>
       </div>

@@ -3,20 +3,8 @@ import { Calendar, ChevronRight } from 'lucide-react';
 
 const Header = ({ date, onDateClick, title = "Today Expenses" }) => {
   const formatDate = (dateString) => {
-    let dateObj;
-    if (typeof dateString === 'string') {
-      dateObj = new Date(dateString + 'T00:00:00');
-    } else if (dateString instanceof Date) {
-      dateObj = dateString;
-    } else {
-      dateObj = new Date(); // Fallback to current date
-    }
-    
-    if (isNaN(dateObj.getTime())) {
-      dateObj = new Date(); // Fallback if invalid date
-    }
-    
-    return dateObj.toLocaleDateString('en-LK', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -25,22 +13,10 @@ const Header = ({ date, onDateClick, title = "Today Expenses" }) => {
   };
 
   const formatDateShort = (dateString) => {
-    let dateObj;
-    if (typeof dateString === 'string') {
-      dateObj = new Date(dateString + 'T00:00:00');
-    } else if (dateString instanceof Date) {
-      dateObj = dateString;
-    } else {
-      dateObj = new Date(); // Fallback to current date
-    }
-    
-    if (isNaN(dateObj.getTime())) {
-      dateObj = new Date(); // Fallback if invalid date
-    }
-    
-    return dateObj.toLocaleDateString('en-LK', {
-      day: '2-digit',
-      month: 'long',
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
       year: 'numeric'
     });
   };
