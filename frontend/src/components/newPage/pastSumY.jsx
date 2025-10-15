@@ -111,15 +111,7 @@ const PastSumY = ({ expenses = [], onYearChange }) => {
         {/* Navigation Header */}
         <div className="bg-white rounded-xl p-6" style={{ boxShadow: '0 3px 15px rgba(0,0,0,0.1)' }}>
           <div className="flex items-center justify-between mb-4">
-            {/* Back Button */}
-            <button
-              onClick={() => navigate('/home')}
-              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
-              style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-            >
-              <ArrowLeft size={20} />
-              Back to Home
-            </button>
+            
 
             {/* Page Title */}
             <h1 className="text-2xl font-bold text-gray-800">Past Yearly Summary</h1>

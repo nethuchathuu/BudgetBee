@@ -9,6 +9,14 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
     selectedDate ? new Date(selectedDate) : today
   );
 
+  // Helper function to format date as YYYY-MM-DD using local time
+  const formatDateLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Helper function to get week number of month
   const getWeekOfMonth = (date) => {
     const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -39,7 +47,7 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
       const date = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), day);
       days.push({
         day,
-        date: date.toISOString().split('T')[0],
+        date: formatDateLocal(date),
         isCurrentMonth: false,
         isToday: false,
         isSelected: false
@@ -49,8 +57,8 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
     // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      const dateString = date.toISOString().split('T')[0];
-      const isToday = dateString === today.toISOString().split('T')[0];
+      const dateString = formatDateLocal(date);
+      const isToday = dateString === formatDateLocal(today);
       const isSelected = selectedDate && dateString === selectedDate;
 
       days.push({
@@ -69,7 +77,7 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day);
       days.push({
         day,
-        date: date.toISOString().split('T')[0],
+        date: formatDateLocal(date),
         isCurrentMonth: false,
         isToday: false,
         isSelected: false

@@ -134,14 +134,14 @@ const PastSumD = ({ selectedDate, onDateChange }) => {
         <div className="bg-white rounded-xl p-6" style={{ boxShadow: '0 3px 15px rgba(0,0,0,0.1)' }}>
           <div className="flex items-center justify-between mb-4">
             {/* Back Button */}
-            <button
+            {/*<button
               onClick={() => navigate('/home')}
-              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
-              style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-lg"
+              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
             >
               <ArrowLeft size={20} />
-              Back to Home
-            </button>
+              Back to Dashboard
+            </button>*/}
 
             {/* Page Title */}
             <h1 className="text-2xl font-bold text-gray-800">Past Daily Summary</h1>
