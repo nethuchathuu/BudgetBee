@@ -1,21 +1,60 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ChevronLeft, ChevronRight, Download, Calendar, Wallet, Tag, TrendingUp, BarChart3, Users, Target, Globe, PiggyBank } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// Legacy YearlySum component - now uses modular structure// Legacy YearlySum component - now exports from modular Yearly folder// Legacy YearlySum component - now exports from modular Yearly folder// Legacy YearlySum component - now exports from modular Yearly folder
+
+import React from 'react';
+
+import YearlySum from './Yearly/YearlySum';import React from 'react';
+
 import SumNav from './sumNav';
 
-const YearlySum = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const summaryRef = useRef(null);
-  
-  const [currentYear, setCurrentYear] = useState(
-    location.state?.selectedYear || new Date().getFullYear()
+import YearlySum from './Yearly/YearlySum';import React from 'react';import React from 'react';
+
+const YearlySumWrapper = () => {
+
+  return (import SumNav from './sumNav';
+
+    <div>
+
+      <SumNav />import YearlySum from './Yearly/YearlySum';import YearlySum from './Yearly/YearlySum';
+
+      <YearlySum />
+
+    </div>const YearlySumWrapper = () => {
+
   );
 
-  // Sample data with consistent color scheme
+};  return (import SumNav from './sumNav';import SumNav from './sumNav';
+
+
+
+export default YearlySumWrapper;    <div>
+
+      <SumNav />
+
+      <YearlySum />
+
+    </div>const YearlySumWrapper = () => {const YearlySumWrapper = () => {
+
+  );
+
+};  return (  const navigate = useNavigate();
+
+
+
+export default YearlySumWrapper;    <div>  const location = useLocation();
+
+      <SumNav />  const summaryRef = useRef(null);
+
+      <YearlySum />  
+
+    </div>  const [currentYear, setCurrentYear] = useState(
+
+  );    location.state?.selectedYear || new Date().getFullYear()
+
+};  );
+
+
+
+export default YearlySumWrapper;  // Sample data with consistent color scheme
   const sampleData = [
     { category: 'Groceries', amount: 15675.50, color: '#4A90E2' },
     { category: 'Transport', amount: 8456.75, color: '#2ECC71' },

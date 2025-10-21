@@ -6,10 +6,10 @@ import ExpenseCards from "../components/newPage/expenseCards";
 import Graph from "../components/newPage/graph";
 import Chart from "../components/newPage/chart";
 import Calendar from "../components/newPage/calendar";
-import PastSumD from "../components/newPage/pastSumD";
-import PastSumW from "../components/newPage/pastSumW";
-import PastSumM from "../components/newPage/pastSumM";
-import PastSumY from "../components/newPage/pastSumY";
+import LastDay from "../components/newPage/lastDay";
+import LastWeek from "../components/newPage/lastWeek";
+import LastMonth from "../components/newPage/lastMonth";
+import LastYear from "../components/newPage/lastYear";
 import { expensesAPI, getUserId, transformExpenseData, formatDateForAPI } from "../services/api";
 import { 
   CalendarDays, 
@@ -90,17 +90,13 @@ export default function HomePage() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'daily':
-        return <PastSumD selectedDate={selectedDate} onDateChange={setSelectedDate} />;
+        return <LastDay />;
       case 'weekly':
-        return <PastSumW selectedDate={selectedDate} onWeekChange={setSelectedDate} />;
+        return <LastWeek />;
       case 'monthly':
-        return <PastSumM selectedDate={selectedDate} onMonthChange={setSelectedDate} />;
+        return <LastMonth />;
       case 'yearly':
-        return <PastSumY selectedDate={selectedDate} onYearChange={(year) => {
-          const newDate = new Date(selectedDate);
-          newDate.setFullYear(year);
-          setSelectedDate(newDate);
-        }} />;
+        return <LastYear />;
       default: // 'today'
         return (
           <div className="flex h-screen bg-gray-100">
