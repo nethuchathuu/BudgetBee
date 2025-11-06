@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import google from "../../assets/google_log.png";
+import { useToast } from '../../context/ToastContext';
 
 
 export default function SignUpForm() {
@@ -12,6 +13,7 @@ export default function SignUpForm() {
     confirmPassword: "",
   });
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,7 +23,7 @@ export default function SignUpForm() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.show("Passwords do not match!", 'error');
       return;
     }
 
@@ -36,14 +38,14 @@ export default function SignUpForm() {
         }
       );
 
-      alert(response.data.message || "Signup successful!");
+      toast.show(response.data.message || "Signup successful!", 'success');
       navigate("/signin");
     } catch (error) {
       console.error("Error during signup:", error);
       if (error.response && error.response.data) {
-        alert(error.response.data.error || "Signup failed!");
+        toast.show(error.response.data.error || "Signup failed!", 'error');
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.show("Something went wrong. Please try again.", 'error');
       }
     }
   };

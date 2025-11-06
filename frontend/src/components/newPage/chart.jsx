@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { PieChart as PieChartIcon, Download } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
-const Chart = ({ data = [], onSliceClick, currency = '$' }) => {
+const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
   const [activeIndex, setActiveIndex] = useState(null);
 
   // Color palette for pie chart
@@ -40,58 +40,15 @@ const Chart = ({ data = [], onSliceClick, currency = '$' }) => {
     return null;
   };
 
-  const CustomLegend = ({ payload }) => {
-    return (
-      <div className="mt-4 max-h-32 overflow-y-auto">
-        <div className="grid grid-cols-1 gap-1">
-          {payload.map((entry, index) => (
-            <div
-              key={`legend-${index}`}
-              className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded cursor-pointer"
-              onClick={() => onSliceClick?.(entry.payload.name)}
-            >
-              <div className="flex items-center space-x-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-sm text-gray-700 truncate">
-                  {entry.payload.name}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 font-medium">
-                {formatCurrency(entry.payload.value)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const handleSliceClick = (data, index) => {
     setActiveIndex(index);
     onSliceClick?.(data.name);
   };
 
-  const downloadChart = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Category,Amount,Percentage\n"
-      + chartData.map(row => `${row.name},${row.value},${row.percentage}%`).join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "expense_pie_chart_data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (!data || data.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-center mb-4">
           <h3 className="text-lg font-semibold text-gray-800 flex items-center">
             <PieChartIcon className="h-5 w-5 mr-2 text-emerald-600" />
             Category Distribution
@@ -110,19 +67,11 @@ const Chart = ({ data = [], onSliceClick, currency = '$' }) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-center mb-4">
         <h3 className="text-lg font-semibold text-gray-800 flex items-center">
           <PieChartIcon className="h-5 w-5 mr-2 text-emerald-600" />
           Category Distribution
         </h3>
-        <button
-          onClick={downloadChart}
-          className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          title="Download chart data"
-        >
-          <Download className="h-4 w-4 text-gray-600" />
-          <span className="text-sm text-gray-600">Export</span>
-        </button>
       </div>
 
       {/* Chart */}
@@ -152,19 +101,6 @@ const Chart = ({ data = [], onSliceClick, currency = '$' }) => {
             <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Custom Legend */}
-      <CustomLegend payload={chartData} />
-
-      {/* Summary */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="text-center">
-          <div className="text-sm text-gray-600">Total Expenses</div>
-          <div className="text-xl font-bold text-gray-800">
-            {formatCurrency(totalAmount)}
-          </div>
-        </div>
       </div>
     </div>
   );

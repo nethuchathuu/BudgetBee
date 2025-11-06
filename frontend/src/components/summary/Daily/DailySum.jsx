@@ -22,6 +22,7 @@ const DailySum = () => {
   );
   
   const [expenseData, setExpenseData] = useState([]);
+  const [summaryData, setSummaryData] = useState({ totalSpent: 0, topCategory: null, topAmount: 0 });
   const [loading, setLoading] = useState(false);
   const summaryRef = useRef(null);
 
@@ -34,10 +35,35 @@ const DailySum = () => {
     setLoading(true);
     try {
       const data = await dataService.getDailyExpenses(dataService.formatDateForPDF(currentDate));
-      setExpenseData(data);
+      
+      // Handle new API format vs sample data format
+      if (data.categoryBreakdown) {
+        // New API format: { totalSpent, topCategory, topAmount, categoryBreakdown }
+        setExpenseData(data.categoryBreakdown);
+        setSummaryData({
+          totalSpent: data.totalSpent || 0,
+          topCategory: data.topCategory || null,
+          topAmount: data.topAmount || 0
+        });
+      } else if (Array.isArray(data)) {
+        // Sample data format: array of { category, amount, color }
+        setExpenseData(data);
+        // Calculate summary from sample data
+        const totalSpent = dataService.calculateTotalSpent(data);
+        const topCategoryData = dataService.getTopCategory(data);
+        setSummaryData({
+          totalSpent,
+          topCategory: topCategoryData.category,
+          topAmount: topCategoryData.amount
+        });
+      } else {
+        setExpenseData([]);
+        setSummaryData({ totalSpent: 0, topCategory: null, topAmount: 0 });
+      }
     } catch (error) {
       console.error('Error loading expense data:', error);
       setExpenseData([]);
+      setSummaryData({ totalSpent: 0, topCategory: null, topAmount: 0 });
     } finally {
       setLoading(false);
     }
@@ -100,8 +126,9 @@ const DailySum = () => {
         
         {/* Summary Cards Section */}
         <Cards 
-          expenseData={expenseData}
-          isLoading={loading}
+          totalSpent={summaryData.totalSpent}
+          topCategory={summaryData.topCategory}
+          topAmount={summaryData.topAmount}
         />
 
         {/* Charts Section */}

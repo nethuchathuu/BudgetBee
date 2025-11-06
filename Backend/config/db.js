@@ -2,16 +2,14 @@ const sql = require("mysql2/promise");
 const dotenv = require("dotenv").config();
 
 const pool = sql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'budgetBee',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  port: parseInt(process.env.DB_PORT) || 3306,
-  connectTimeout: 60000,
-  charset: 'utf8mb4'
+  port:process.env.DB_PORT,
 });
 
 // Function to check if the connection is established with the database
@@ -27,4 +25,16 @@ const checkConnection = async () => {
   }
 }
 
-module.exports = { pool, checkConnection }; 
+// Provide a lightweight db helper compatible with code that calls `db.execute()` or uses `pool`
+const db = {
+  pool,
+  checkConnection,
+  // proxy execute to the pool
+  execute: (...args) => pool.execute(...args),
+  // proxy query to the pool (for raw queries)
+  query: (...args) => pool.query(...args),
+  // allow getting a connection if needed
+  getConnection: (...args) => pool.getConnection(...args),
+};
+
+module.exports = db;

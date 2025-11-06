@@ -43,7 +43,6 @@ export default function UploadRight({
   handleRowChange,
   addRow,
   getTotal,
-  currency = "$", // Default currency symbol
   onSave,
   isValidForSave,
   isLoading,
@@ -147,9 +146,9 @@ export default function UploadRight({
               <span>Add Row</span>
             </button>
 
-            {/* Total */}
+            {/* Total - always display in Rs (LKR) */}
             <div className="text-right font-semibold text-emerald-400 mb-4">
-              Total: {currency}{getTotal().toFixed(2)}
+              Total: Rs.{getTotal().toFixed(2)}
             </div>
 
             {/* Save Button */}

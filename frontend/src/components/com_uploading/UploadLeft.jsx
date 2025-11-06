@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import AfterUpload from "./AfterUpload";
+import { useToast } from '../../context/ToastContext';
 
 export default function UploadLeft({ onProcess }) {
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const toast = useToast();
 
   // Handle file select
   const handleFileChange = (file) => {
@@ -22,10 +24,17 @@ export default function UploadLeft({ onProcess }) {
     setIsProcessing(false);
   };
 
+  // Listen for clear requests (dispatched after successful save)
+  React.useEffect(() => {
+    const handler = () => handleCancel();
+    window.addEventListener('budgetbee:clearImage', handler);
+    return () => window.removeEventListener('budgetbee:clearImage', handler);
+  }, []);
+
   // Handle OCR processing
   const handleProcess = async () => {
     if (!selectedFile) {
-      alert('Please select an image first');
+      toast.show('Please select an image first', 'error');
       return;
     }
 
@@ -57,7 +66,7 @@ export default function UploadLeft({ onProcess }) {
       if (result.success) {
         // Pass the OCR results to parent component
         onProcess(result.billInfo, result.extractedText);
-        alert('Image processed successfully!');
+        toast.show('Image processed successfully!', 'success');
       } else {
         throw new Error(result.error || 'OCR processing failed');
       }
@@ -66,11 +75,11 @@ export default function UploadLeft({ onProcess }) {
       
       // Provide more specific error messages
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        alert('Cannot connect to server. Please make sure the backend server is running on http://localhost:5001');
+        toast.show('Cannot connect to server. Please make sure the backend server is running', 'error');
       } else if (error.message.includes('Server error')) {
-        alert(`Server error: ${error.message}`);
+        toast.show(`Server error: ${error.message}`, 'error');
       } else {
-        alert(`Failed to process image: ${error.message}. Please try again.`);
+        toast.show(`Failed to process image: ${error.message}. Please try again.`, 'error');
       }
     } finally {
       setIsProcessing(false);

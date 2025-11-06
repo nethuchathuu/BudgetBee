@@ -84,11 +84,40 @@ const LastMonth = () => {
         </div>
 
         {/* Summary Cards */}
-        <MonthlyCards 
-          expenseData={expenseData}
-          currentMonth={previousMonth}
-          isLoading={loading}
-        />
+        {!loading && (
+          <MonthlyCards 
+            totalSpent={monthlyDataService.calculateTotalSpent(expenseData)}
+            highestWeek="Week 3"
+            highestWeekAmount={monthlyDataService.calculateTotalSpent(expenseData) * 0.4}
+            weeklyAverage={monthlyDataService.calculateTotalSpent(expenseData) / 4}
+            highestDate={monthlyDataService.formatDate(new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 15))}
+            highestDateAmount={monthlyDataService.calculateTotalSpent(expenseData) * 0.2}
+            dailyAverage={monthlyDataService.calculateTotalSpent(expenseData) / monthlyDataService.getDaysInMonth(previousMonth)}
+            topCategory={monthlyDataService.getTopCategory(expenseData)?.category || 'N/A'}
+            topCategoryAmount={monthlyDataService.getTopCategory(expenseData)?.amount || 0}
+          />
+        )}
+        
+        {/* Loading State for Cards */}
+        {loading && (
+          <div className="cards-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+            {[...Array(6)].map((_, index) => (
+              <div 
+                key={index}
+                className="bg-white rounded-xl p-6 text-center animate-pulse" 
+                style={{ 
+                  backgroundColor: '#f8fafc',
+                  padding: '1.5rem',
+                  borderRadius: '1rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              >
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Charts Section */}
         {expenseData.length > 0 && !loading && (

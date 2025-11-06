@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import google from "../../assets/google_log.png";
+import { useToast } from '../../context/ToastContext';
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,14 +24,14 @@ export default function SignInForm() {
         localStorage.setItem("token", response.data.token);
       }
 
-      alert(response.data.message || "Login successful!");
+      toast.show(response.data.message || "Login successful!", 'success');
       navigate("/home");
     } catch (error) {
       console.error("Error during signin:", error);
       if (error.response && error.response.data) {
-        alert(error.response.data.error || "Signin failed!");
+        toast.show(error.response.data.error || "Signin failed!", 'error');
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.show("Something went wrong. Please try again.", 'error');
       }
     }
   };

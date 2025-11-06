@@ -63,13 +63,20 @@ export default function HomePage() {
   };
 
   const handleDateClick = async (date) => {
-    setSelectedDate(date);
+    // `date` may be a string in YYYY-MM-DD format or an object like { date: 'YYYY-MM-DD' }
+    let dateStr = '';
+    if (typeof date === 'string') dateStr = date;
+    else if (date && typeof date === 'object' && date.date) dateStr = date.date;
+    else if (date instanceof Date) dateStr = date.toISOString().split('T')[0];
+
+    const dateObj = dateStr ? new Date(dateStr) : new Date();
+    setSelectedDate(dateObj);
     setShowCalendar(false); // Close calendar after selection
-    
+
     // If clicking on today's date, use today view, otherwise switch to daily view
     const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
-    
+    const isToday = dateObj.toDateString() === today.toDateString();
+
     if (isToday) {
       setCurrentView('today');
       await fetchTodaysExpenses();
@@ -90,7 +97,7 @@ export default function HomePage() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'daily':
-        return <LastDay />;
+        return <LastDay selectedDate={selectedDate} />;
       case 'weekly':
         return <LastWeek />;
       case 'monthly':
@@ -176,7 +183,8 @@ export default function HomePage() {
                     
                     {/* Calendar Modal */}
                     <Calendar 
-                      selectedDate={selectedDate}
+                      // Calendar expects a YYYY-MM-DD string; HomePage keeps a Date object for display
+                      selectedDate={formatDateForAPI(selectedDate)}
                       onDateSelect={handleDateClick}
                       onClose={handleCalendarToggle}
                       isOpen={showCalendar}
@@ -186,7 +194,7 @@ export default function HomePage() {
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 <div className="p-6 space-y-6">
                   {/* Error Message */}
                   {error && (
@@ -208,13 +216,17 @@ export default function HomePage() {
                   )}
 
                   {/* Expense Cards */}
-                  {!loading && <ExpenseCards expenses={expenseData} />}
+                  {!loading && <ExpenseCards data={expenseData} />}
 
-                  {/* Charts Section */}
+                  {/* Charts Section - stacked vertically: Bar (Graph) then Pie (Chart) */}
                   {!loading && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <Graph expenses={expenseData} />
-                      <Chart expenses={expenseData} />
+                    <div className="flex flex-col items-center w-full gap-6">
+                      <div className="w-full max-w-4xl">
+                        <Graph data={expenseData} />
+                      </div>
+                      <div className="w-full max-w-2xl">
+                        <Chart data={expenseData} />
+                      </div>
                     </div>
                   )}
                 </div>

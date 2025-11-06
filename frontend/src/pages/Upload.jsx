@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import NavBar from "../components/NavHome";
 import UploadLeft from "../components/com_uploading/UploadLeft";
 import UploadRight from "../components/com_uploading/UploadRight";
+import { useToast } from '../context/ToastContext';
 
 export default function Upload() {
+  const toast = useToast();
   const [billDate, setBillDate] = useState("");
   const [shopName, setShopName] = useState("");
   const [rows, setRows] = useState([]);
   const [extractedText, setExtractedText] = useState("");
-  const [currency, setCurrency] = useState("$"); // Default currency symbol
   const [isLoading, setIsLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -84,11 +85,19 @@ export default function Upload() {
         const expenseData = {
           user_id: user_id,
           bill_date: billDate,
+          created_at: billDate, // Use bill_date as created_at for accurate daily summaries
           shop_name: shopName || null,
           category_name: row.category,
           product_name: row.product,
           price: parseFloat(row.price)
         };
+
+        console.log('📤 Sending expense with created_at:', {
+          bill_date: billDate,
+          created_at: billDate,
+          category: row.category,
+          product: row.product
+        });
 
         const response = await fetch('http://localhost:5000/api/expenses/add', {
           method: 'POST',
@@ -108,8 +117,12 @@ export default function Upload() {
       });
 
       await Promise.all(savePromises);
+      
+      // Show in-app toast notification
+      toast.show(`Successfully saved ${validRows.length} expense(s)!`, 'success');
 
-      setSaveMessage(`Successfully saved ${validRows.length} expense(s)!`);
+      // Clear image preview by dispatching event to UploadLeft
+      window.dispatchEvent(new Event('budgetbee:clearImage'));
       
       // Reset form after successful save
       setTimeout(() => {
@@ -118,11 +131,11 @@ export default function Upload() {
         setShopName("");
         setExtractedText("");
         setSaveMessage("");
-      }, 2000);
+      }, 1500);
 
     } catch (error) {
       console.error('Error saving expenses:', error);
-      setSaveMessage(`Error: ${error.message}`);
+      toast.show(`Error: ${error.message}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -131,13 +144,6 @@ export default function Upload() {
   // Handle OCR results
   const handleOCRResults = (billInfo, rawText) => {
     setExtractedText(rawText);
-
-    // Set currency from detected bill info
-    if (billInfo.currencySymbol) {
-      setCurrency(billInfo.currencySymbol);
-    } else {
-      setCurrency("$"); // Default fallback
-    }
 
     // Populate shop name
     if (billInfo.shopName) {
@@ -163,12 +169,12 @@ export default function Upload() {
       }
     }
 
-    // Populate items
+    // Populate items (all prices are in LKR)
     if (billInfo.items && billInfo.items.length > 0) {
       const formattedRows = billInfo.items.map((item) => ({
         category: item.category || "Other",
         product: item.product || "",
-        price: item.price ? item.price.toString() : "",
+        price: item.price ? String(item.price) : "",
       }));
       setRows(formattedRows);
     }
@@ -190,7 +196,6 @@ export default function Upload() {
             handleRowChange={handleRowChange}
             addRow={addRow}
             getTotal={getTotal}
-            currency={currency}
             onSave={handleSave}
             isValidForSave={isValidForSave}
             isLoading={isLoading}

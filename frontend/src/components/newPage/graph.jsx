@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Download, BarChart3 } from 'lucide-react';
 
-const Graph = ({ data = [], onBarClick, currency = '$' }) => {
+const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
   const [activeBar, setActiveBar] = useState(null);
 
   // Transform data for recharts

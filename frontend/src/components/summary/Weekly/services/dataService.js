@@ -146,6 +146,23 @@ class WeeklyDataService {
     };
   }
 
+  // Get the day with highest expense (mock implementation)
+  getHighestExpenseDay(expenseData) {
+    if (expenseData.length === 0) {
+      return { day: 'N/A', amount: 0 };
+    }
+    
+    // Mock data - in real implementation, this would analyze daily totals
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const topCategory = this.getTopCategory(expenseData);
+    const randomDayIndex = Math.floor(Math.random() * 7);
+    
+    return {
+      day: days[randomDayIndex],
+      amount: topCategory.amount * 0.8 // Mock: assume highest day is 80% of top category
+    };
+  }
+
   // Compare with previous week (placeholder for future implementation)
   async compareWithPreviousWeek(currentWeekData, weekStartDate) {
     // TODO: Implement comparison logic

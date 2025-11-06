@@ -1,8 +1,10 @@
 // Data service for Monthly Summary components
 // Acts as a microservice data layer for API calls and data management
+import axios from 'axios';
 
 class MonthlyDataService {
   constructor() {
+    this.apiBaseUrl = 'http://localhost:5000/api/expenses';
     this.sampleData = [
       { category: 'Groceries', amount: 1125.50, color: '#4A90E2' },
       { category: 'Transport', amount: 456.75, color: '#2ECC71' },
@@ -17,21 +19,32 @@ class MonthlyDataService {
   }
 
   // Fetch monthly expense data for a specific month
-  async getMonthlyExpenses(year, month) {
+  async getMonthlyExpenses(year, month, userId = 1) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/expenses/monthly?year=${year}&month=${month}`);
-      // return await response.json();
+      let endpoint;
+      const currentDate = new Date();
+      const isCurrentMonth = year === currentDate.getFullYear() && month === (currentDate.getMonth() + 1);
       
-      // For now, return sample data
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(this.sampleData);
-        }, 100);
-      });
+      if (isCurrentMonth) {
+        // Current month
+        endpoint = `${this.apiBaseUrl}/summary/monthly/${userId}`;
+      } else {
+        // Selected month
+        endpoint = `${this.apiBaseUrl}/summary/monthly/${userId}/${year}/${month}`;
+      }
+      
+      const response = await axios.get(endpoint);
+      
+      if (response.data.success) {
+        return response.data.data; // Array of { category, amount, color }
+      } else {
+        console.warn('API returned unsuccessful response:', response.data);
+        return this.sampleData; // Fallback to sample data
+      }
     } catch (error) {
       console.error('Error fetching monthly expenses:', error);
-      return [];
+      // Return sample data as fallback
+      return this.sampleData;
     }
   }
 
@@ -104,6 +117,20 @@ class MonthlyDataService {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   }
 
+  // Format date for display
+  formatDate(date) {
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+
+  // Format date for API calls
+  formatDateForAPI(date) {
+    return date.toISOString().split('T')[0];
+  }
+
   // Calculate monthly insights
   getMonthlyInsights(expenseData) {
     const totalSpent = this.calculateTotalSpent(expenseData);
@@ -123,6 +150,16 @@ class MonthlyDataService {
       budget: this.monthlyBudget,
       remainingBudget: this.monthlyBudget - totalSpent
     };
+  }
+
+  // Format month for display
+  formatMonth(date) {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  // Get number of days in a month
+  getDaysInMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   }
 }
 

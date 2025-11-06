@@ -10,29 +10,43 @@ import {
   dataService as dailyDataService 
 } from '../summary/Daily';
 
-const LastDay = () => {
+const LastDay = ({ selectedDate: propSelectedDate }) => {
   const navigate = useNavigate();
-  const [previousDay, setPreviousDay] = useState(new Date());
-  const [expenseData, setExpenseData] = useState([]);
+  const [displayDate, setDisplayDate] = useState(new Date());
+  const [expenseData, setExpenseData] = useState(null); // Changed from [] to null to distinguish loading vs empty
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Set previous day (yesterday)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    setPreviousDay(yesterday);
-    
-    loadPreviousDayData(yesterday);
-  }, []);
+    // Use the prop date if provided, otherwise use yesterday
+    let dateToLoad;
+    if (propSelectedDate) {
+      dateToLoad = propSelectedDate;
+    } else {
+      dateToLoad = new Date();
+      dateToLoad.setDate(dateToLoad.getDate() - 1);
+    }
+    setDisplayDate(dateToLoad);
+    loadPreviousDayData(dateToLoad);
+  }, [propSelectedDate]); // Re-run when propSelectedDate changes
 
   const loadPreviousDayData = async (date) => {
     setLoading(true);
     try {
-      const data = await dailyDataService.getDailyExpenses(dailyDataService.formatDateForPDF(date));
-      setExpenseData(data);
+      const formattedDate = dailyDataService.formatDateForPDF(date);
+      console.log('🔍 Loading data for date:', { date, formattedDate });
+      
+      const data = await dailyDataService.getDailyExpenses(formattedDate);
+      console.log('📦 Received expense data:', data);
+      
+      setExpenseData(data); // Now receives {totalSpent, topCategory, topAmount, categoryBreakdown}
     } catch (error) {
-      console.error('Error loading previous day data:', error);
-      setExpenseData([]);
+      console.error('❌ Error loading previous day data:', error);
+      setExpenseData({
+        totalSpent: 0,
+        topCategory: null,
+        topAmount: 0,
+        categoryBreakdown: []
+      });
     } finally {
       setLoading(false);
     }
@@ -53,46 +67,74 @@ const LastDay = () => {
               
               <div className="flex items-center gap-2">
                 <Clock style={{ color: '#4A90E2' }} size={24} />
-                <h1 className="text-2xl font-bold text-gray-800">Yesterday's Summary</h1>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {propSelectedDate ? 'Daily Summary' : "Yesterday's Summary"}
+                </h1>
               </div>
             </div>
             
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar size={20} />
               <span className="text-lg font-medium">
-                {dailyDataService.formatDate(previousDay)}
+                {dailyDataService.formatDate(displayDate)}
               </span>
             </div>
           </div>
           
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              📊 Review your spending from yesterday to track your daily habits and identify patterns.
+              📊 Review your spending from this day to track your daily habits and identify patterns.
             </p>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <DailyCards 
-          expenseData={expenseData}
-          isLoading={loading}
-        />
+        {!loading && expenseData && (
+          <DailyCards 
+            totalSpent={expenseData.totalSpent || 0}
+            topCategory={expenseData.topCategory || 'N/A'}
+            topAmount={expenseData.topAmount || 0}
+          />
+        )}
+        
+        {/* Loading State for Cards */}
+        {loading && (
+          <div className="cards-container flex flex-wrap gap-4 justify-center items-center p-4">
+            {[...Array(2)].map((_, index) => (
+              <div 
+                key={index}
+                className="bg-white rounded-xl p-6 text-center animate-pulse" 
+                style={{ 
+                  backgroundColor: '#f8fafc',
+                  padding: '1.5rem',
+                  borderRadius: '1rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  minWidth: '200px',
+                  flex: '1'
+                }}
+              >
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Charts Section */}
-        {expenseData.length > 0 && !loading && (
+        {expenseData && expenseData.categoryBreakdown && expenseData.categoryBreakdown.length > 0 && !loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Bar Chart */}
             <DailyBarChart 
-              data={expenseData}
+              data={expenseData.categoryBreakdown}
               isLoading={loading}
-              title="Yesterday's Expenses by Category"
+              title="Expenses by Category"
             />
 
             {/* Pie Chart */}
             <DailyPieChart 
-              data={expenseData}
+              data={expenseData.categoryBreakdown}
               isLoading={loading}
-              title="Yesterday's Spending Distribution"
+              title="Spending Distribution"
             />
           </div>
         )}
@@ -106,7 +148,7 @@ const LastDay = () => {
         )}
 
         {/* No Data Message */}
-        {expenseData.length === 0 && !loading && (
+        {expenseData && (!expenseData.categoryBreakdown || expenseData.categoryBreakdown.length === 0) && !loading && (
           <div className="bg-white rounded-xl p-12 text-center" style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 
@@ -115,7 +157,7 @@ const LastDay = () => {
               <Calendar size={48} className="mx-auto mb-4" />
             </div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No expenses found</h3>
-            <p className="text-gray-500">No expenses recorded for {dailyDataService.formatDate(previousDay)}</p>
+            <p className="text-gray-500">No expenses recorded for {dailyDataService.formatDate(displayDate)}</p>
           </div>
         )}
       </div>

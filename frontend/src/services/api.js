@@ -169,33 +169,51 @@ export const expensesAPI = {
 
 // Helper functions to transform backend data for frontend components
 export const transformExpenseData = (backendData) => {
-  if (!backendData || !backendData.data) return [];
+  if (!backendData) return [];
 
-  // Group by category and calculate totals
-  const categoryMap = new Map();
-  
-  backendData.data.forEach(item => {
-    const category = item.category_name;
-    const amount = parseFloat(item.product_total);
-    
-    if (categoryMap.has(category)) {
-      categoryMap.set(category, categoryMap.get(category) + amount);
-    } else {
-      categoryMap.set(category, amount);
-    }
-  });
+  // Normalize different backend shapes into a consistent array
+  // backendData.data may be:
+  // - an array of { category, amount, color }
+  // - an object containing { categoryBreakdown: [...] }
+  // - an array of { category_name, product_total }
+  // We'll coerce into items with: category_name, category_total, category, amount, color
 
-  // Convert to array format expected by frontend components
   const colors = [
-    '#8B5CF6', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', 
+    '#8B5CF6', '#EF4444', '#F59E0B', '#10B981', '#3B82F6',
     '#EC4899', '#F97316', '#8B5A2B', '#6B7280', '#84CC16'
   ];
 
-  return Array.from(categoryMap.entries()).map(([category, amount], index) => ({
-    category,
-    amount,
-    color: colors[index % colors.length]
-  }));
+  let rawItems = [];
+  if (Array.isArray(backendData.data)) {
+    rawItems = backendData.data;
+  } else if (backendData.data && Array.isArray(backendData.data.categoryBreakdown)) {
+    rawItems = backendData.data.categoryBreakdown;
+  } else if (Array.isArray(backendData)) {
+    rawItems = backendData;
+  } else {
+    // No recognizable data structure
+    return [];
+  }
+
+  const normalized = rawItems.map((item, index) => {
+    const categoryName = item.category || item.category_name || item.categoryName || item.name || 'Uncategorized';
+    const amount = Number(item.amount ?? item.total ?? item.product_total ?? item.total_expense ?? item.category_total ?? 0) || 0;
+    const color = item.color || colors[index % colors.length];
+
+    return {
+      // Fields used by ExpenseCards / Graph / Chart
+      category_name: categoryName,
+      category_total: amount,
+      products: item.products || [],
+
+      // Fields used by chartService & some components
+      category: categoryName,
+      amount,
+      color
+    };
+  });
+
+  return normalized;
 };
 
 // Calculate week number from date

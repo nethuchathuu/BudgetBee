@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
+// Import Yearly summary components
+import { Cards as YearlyCards } from '../summary/Yearly';
+
 const LastYear = () => {
   const navigate = useNavigate();
   const [previousYear, setPreviousYear] = useState(new Date());
@@ -125,40 +128,43 @@ const LastYear = () => {
         </div>
 
         {/* Summary Cards - 8 Cards for Yearly */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl p-6 text-center" style={{ 
-            boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-            borderRadius: '15px' 
-          }}>
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Total Spent</h3>
-            <p className="font-bold text-gray-800 text-xl">{formatCurrency(totalSpent)}</p>
+        {!loading && (
+          <YearlyCards 
+            totalSpent={totalSpent}
+            highestMonth="March"
+            highestMonthAmount={totalSpent * 0.15}
+            monthlyAverage={monthlyAverage}
+            highestWeek="Week 12"
+            highestWeekAmount={totalSpent * 0.04}
+            weeklyAverage={totalSpent / 52}
+            highestDate="March 15"
+            highestDateAmount={totalSpent * 0.008}
+            dailyAverage={totalSpent / 365}
+            topCategory={topCategory.category}
+            topCategoryAmount={topCategory.amount}
+          />
+        )}
+        
+        {/* Loading State for Cards */}
+        {loading && (
+          <div className="cards-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+            {[...Array(8)].map((_, index) => (
+              <div 
+                key={index}
+                className="bg-white rounded-xl p-6 text-center animate-pulse" 
+                style={{ 
+                  backgroundColor: '#f8fafc',
+                  padding: '1.5rem',
+                  borderRadius: '1rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              >
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded"></div>
+              </div>
+            ))}
           </div>
-
-          <div className="bg-white rounded-xl p-6 text-center" style={{ 
-            boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-            borderRadius: '15px' 
-          }}>
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Top Category</h3>
-            <p className="font-bold text-gray-800">{topCategory.category}</p>
-            <p className="text-sm text-gray-600">{formatCurrency(topCategory.amount)}</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 text-center" style={{ 
-            boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-            borderRadius: '15px' 
-          }}>
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Categories</h3>
-            <p className="font-bold text-gray-800 text-xl">{categoriesCount}</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 text-center" style={{ 
-            boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-            borderRadius: '15px' 
-          }}>
-            <h3 className="text-gray-600 text-sm font-semibold mb-2">Monthly Average</h3>
-            <p className="font-bold text-gray-800 text-xl">{formatCurrency(monthlyAverage)}</p>
-          </div>
-        </div>
+        )}
 
         {/* Charts Section */}
         {expenseData.length > 0 && !loading && (

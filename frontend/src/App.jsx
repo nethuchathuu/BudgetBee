@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import SignIn from "./pages/SignIn";
@@ -10,11 +9,14 @@ import WeeklySum from "./components/summary/WeeklySum";
 import MonthlySum from "./components/summary/MonthlySum";
 import YearlySum from "./components/summary/YearlySum";
 import './index.css';
+import { ToastProvider } from './context/ToastContext';
+import ToastContainer from './components/ui/ToastContainer';
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
@@ -24,8 +26,10 @@ function App() {
         <Route path="/weekly-summary" element={<WeeklySum />} />
         <Route path="/monthly-summary" element={<MonthlySum />} />
         <Route path="/yearly-summary" element={<YearlySum />} />
-      </Routes>
-    </Router>
+        </Routes>
+        <ToastContainer />
+      </Router>
+    </ToastProvider>
   );
 }
 
