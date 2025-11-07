@@ -123,7 +123,7 @@ export default function HomePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
                 >
                   <CalendarDays size={20} className="text-emerald-600" />
-                  <span className="font-medium">Daily Summary</span>
+                  <span className="font-medium">Last Day Summary</span>
                   <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 
@@ -132,7 +132,7 @@ export default function HomePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
                 >
                   <CalendarIcon size={20} className="text-emerald-600" />
-                  <span className="font-medium">Weekly Summary</span>
+                  <span className="font-medium">Last Week Summary</span>
                   <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 
@@ -141,7 +141,7 @@ export default function HomePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
                 >
                   <TrendingUp size={20} className="text-emerald-600" />
-                  <span className="font-medium">Monthly Summary</span>
+                  <span className="font-medium">Last Month Summary</span>
                   <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 
@@ -150,7 +150,7 @@ export default function HomePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
                 >
                   <Clock size={20} className="text-emerald-600" />
-                  <span className="font-medium">Yearly Summary</span>
+                  <span className="font-medium">Last Year Summary</span>
                   <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </nav>

@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 
 const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
   const navigate = useNavigate();
-  const today = new Date();
+  // Always get current date fresh to avoid stale "today" highlighting
+  const today = useMemo(() => new Date(), [isOpen]);
   const [currentDate, setCurrentDate] = useState(
-    selectedDate ? new Date(selectedDate) : today
+    selectedDate ? new Date(selectedDate) : new Date()
   );
 
   // Helper function to format date as YYYY-MM-DD using local time
