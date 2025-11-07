@@ -68,7 +68,7 @@ const LastDay = ({ selectedDate: propSelectedDate }) => {
               <div className="flex items-center gap-2">
                 <Clock style={{ color: '#4A90E2' }} size={24} />
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {propSelectedDate ? 'Daily Summary' : "Yesterday's Summary"}
+                  {propSelectedDate ? 'Last Day Summary' : "Yesterday's Summary"}
                 </h1>
               </div>
             </div>

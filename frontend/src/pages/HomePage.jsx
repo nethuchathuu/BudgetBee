@@ -92,6 +92,13 @@ export default function HomePage() {
   const handleViewChange = (view) => {
     setCurrentView(view);
     setShowCalendar(false); // Close calendar when changing views
+    
+    // When switching to daily view from menu (not calendar), reset to yesterday
+    if (view === 'daily') {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      setSelectedDate(yesterday);
+    }
   };
 
   const renderCurrentView = () => {
