@@ -5,17 +5,7 @@ import axios from 'axios';
 class MonthlyDataService {
   constructor() {
     this.apiBaseUrl = 'http://localhost:5000/api/expenses';
-    this.sampleData = [
-      { category: 'Groceries', amount: 1125.50, color: '#4A90E2' },
-      { category: 'Transport', amount: 456.75, color: '#2ECC71' },
-      { category: 'Food & Dining', amount: 789.25, color: '#E74C3C' },
-      { category: 'Entertainment', amount: 567.00, color: '#F39C12' },
-      { category: 'Utilities', amount: 2340.80, color: '#9B59B6' },
-      { category: 'Shopping', amount: 934.60, color: '#1ABC9C' },
-      { category: 'Healthcare', amount: 234.90, color: '#34495E' },
-      { category: 'Education', amount: 1500.00, color: '#E67E22' }
-    ];
-    this.monthlyBudget = 15000; // Sample monthly budget
+    // Removed sampleData - using real API now
   }
 
   // Fetch monthly expense data for a specific month
@@ -32,41 +22,99 @@ class MonthlyDataService {
         // Selected month
         endpoint = `${this.apiBaseUrl}/summary/monthly/${userId}/${year}/${month}`;
       }
+
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json'
+      };
       
-      const response = await axios.get(endpoint);
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      console.log('📅 Fetching monthly expenses:', {
+        year,
+        month,
+        userId,
+        endpoint
+      });
+      
+      const response = await axios.get(endpoint, { headers });
+      
+      console.log('📊 Monthly API Response:', response.data);
       
       if (response.data.success) {
-        return response.data.data; // Array of { category, amount, color }
+        // Handle empty month
+        if (response.data.message === 'No expenses recorded this month') {
+          return {
+            categoryBreakdown: [],
+            weeklyBreakdown: [],
+            totalSpent: 0,
+            dailyAverage: 0,
+            weeklyAverage: 0,
+            highestWeek: { week: null, total: 0 },
+            highestDate: { date: null, total: 0 },
+            topCategory: null,
+            topAmount: 0
+          };
+        }
+        
+        // Return the full data object from backend
+        return response.data.data;
       } else {
-        console.warn('API returned unsuccessful response:', response.data);
-        return this.sampleData; // Fallback to sample data
+        console.warn('⚠️ API returned unsuccessful response:', response.data);
+        return {
+          categoryBreakdown: [],
+          weeklyBreakdown: [],
+          totalSpent: 0,
+          dailyAverage: 0,
+          weeklyAverage: 0,
+          highestWeek: { week: null, total: 0 },
+          highestDate: { date: null, total: 0 },
+          topCategory: null,
+          topAmount: 0
+        };
       }
     } catch (error) {
-      console.error('Error fetching monthly expenses:', error);
-      // Return sample data as fallback
-      return this.sampleData;
+      console.error('❌ Error fetching monthly expenses:', error);
+      // Return empty structure on error
+      return {
+        categoryBreakdown: [],
+        weeklyBreakdown: [],
+        totalSpent: 0,
+        dailyAverage: 0,
+        weeklyAverage: 0,
+        highestWeek: { week: null, total: 0 },
+        highestDate: { date: null, total: 0 },
+        topCategory: null,
+        topAmount: 0
+      };
     }
   }
 
-  // Calculate total spent from expense data
+  // Calculate total spent from expense data (backward compatibility)
   calculateTotalSpent(expenseData) {
-    return expenseData.reduce((sum, item) => sum + item.amount, 0);
+    if (Array.isArray(expenseData)) {
+      return expenseData.reduce((sum, item) => sum + (item.amount || 0), 0);
+    }
+    return 0;
   }
 
   // Get categories count
   getCategoriesCount(expenseData) {
-    return expenseData.length;
+    return Array.isArray(expenseData) ? expenseData.length : 0;
   }
 
-  // Calculate daily average spending
+  // Calculate daily average spending (backward compatibility)
   calculateDailyAverage(expenseData, daysInMonth = 30) {
     const totalSpent = this.calculateTotalSpent(expenseData);
     return totalSpent / daysInMonth;
   }
 
-  // Find the category with highest spending
+  // Find the category with highest spending (backward compatibility)
   getTopCategory(expenseData) {
-    if (expenseData.length === 0) {
+    if (!Array.isArray(expenseData) || expenseData.length === 0) {
       return { category: 'N/A', amount: 0 };
     }
     return expenseData.reduce((prev, current) => 
@@ -74,27 +122,16 @@ class MonthlyDataService {
     );
   }
 
-  // Get highest single expense
+  // Get highest single expense (backward compatibility)
   getHighestExpense(expenseData) {
-    if (expenseData.length === 0) return 0;
-    return Math.max(...expenseData.map(item => item.amount));
+    if (!Array.isArray(expenseData) || expenseData.length === 0) return 0;
+    return Math.max(...expenseData.map(item => item.amount || 0));
   }
 
   // Calculate budget usage percentage
-  calculateBudgetUsage(expenseData, budget = null) {
+  calculateBudgetUsage(expenseData, budget = 15000) {
     const totalSpent = this.calculateTotalSpent(expenseData);
-    const monthlyBudget = budget || this.monthlyBudget;
-    return (totalSpent / monthlyBudget) * 100;
-  }
-
-  // Get monthly budget
-  getMonthlyBudget() {
-    return this.monthlyBudget;
-  }
-
-  // Set monthly budget
-  setMonthlyBudget(budget) {
-    this.monthlyBudget = budget;
+    return (totalSpent / budget) * 100;
   }
 
   // Format month for display

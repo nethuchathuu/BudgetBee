@@ -11,9 +11,30 @@ const Cards = ({
   topCategory,
   topCategoryAmount
 }) => {
+  // Safe number conversion to prevent NaN
+  const safeNumber = (value) => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
   // Format currency values
   const formatCurrency = (amount) => {
-    return `Rs. ${Number(amount).toFixed(2)}`;
+    const safe = safeNumber(amount);
+    return `Rs. ${safe.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
+  // Format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   const cardData = [
@@ -25,7 +46,7 @@ const Cards = ({
     {
       id: 'card-highest-week',
       title: 'Highest Expense Week',
-      value: `${highestWeek || 'N/A'} - ${formatCurrency(highestWeekAmount || 0)}`
+      value: highestWeek ? `Week ${highestWeek} - ${formatCurrency(highestWeekAmount || 0)}` : 'N/A'
     },
     {
       id: 'card-weekly-average',
@@ -35,7 +56,7 @@ const Cards = ({
     {
       id: 'card-highest-date',
       title: 'Highest Expense Date',
-      value: `${highestDate || 'N/A'} - ${formatCurrency(highestDateAmount || 0)}`
+      value: highestDate ? `${formatDate(highestDate)} - ${formatCurrency(highestDateAmount || 0)}` : 'N/A'
     },
     {
       id: 'card-daily-average',
@@ -45,12 +66,12 @@ const Cards = ({
     {
       id: 'card-top-category',
       title: 'Top Category',
-      value: `${topCategory || 'N/A'} - ${formatCurrency(topCategoryAmount || 0)}`
+      value: topCategory ? `${topCategory} - ${formatCurrency(topCategoryAmount || 0)}` : 'N/A'
     }
   ];
 
   return (
-    <div className="cards-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+    <div className="cards-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {cardData.map((card) => (
         <div 
           key={card.id}

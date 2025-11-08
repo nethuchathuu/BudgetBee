@@ -22,7 +22,7 @@ const YearlySum = () => {
   const [currentYear, setCurrentYear] = useState(
     location.state?.selectedYear || new Date().getFullYear()
   );
-  const [expenseData, setExpenseData] = useState([]);
+  const [expenseData, setExpenseData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,11 +32,21 @@ const YearlySum = () => {
   const loadYearlyData = async (year) => {
     setLoading(true);
     try {
-      const data = await dataService.getYearlyExpenses(year);
+      const userId = localStorage.getItem('user_id') || 1;
+      let data;
+      
+      if (year === new Date().getFullYear()) {
+        // Current year
+        data = await dataService.getYearlyExpenses(userId);
+      } else {
+        // Selected year
+        data = await dataService.getYearlyExpensesByYear(userId, year);
+      }
+      
       setExpenseData(data);
     } catch (error) {
       console.error('Error loading yearly data:', error);
-      setExpenseData([]);
+      setExpenseData(dataService.getEmptyData());
     } finally {
       setLoading(false);
     }
@@ -80,8 +90,7 @@ const YearlySum = () => {
     }
   };
 
-  // Calculate insights
-  const insights = dataService.getYearlyInsights(expenseData);
+  const hasExpenses = expenseData && expenseData.totalSpent > 0;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
@@ -97,20 +106,20 @@ const YearlySum = () => {
         />
 
         {/* Summary Cards */}
-        {!loading && (
+        {!loading && expenseData && (
           <Cards 
-            totalSpent={insights.totalSpent}
-            highestMonth={insights.highestMonth.month}
-            highestMonthAmount={insights.highestMonth.amount}
-            monthlyAverage={insights.monthlyAverage}
-            highestWeek={insights.highestWeek.week}
-            highestWeekAmount={insights.highestWeek.amount}
-            weeklyAverage={insights.weeklyAverage}
-            highestDate={insights.highestDate.date}
-            highestDateAmount={insights.highestDate.amount}
-            dailyAverage={insights.dailyAverage}
-            topCategory={insights.topCategory.category}
-            topCategoryAmount={insights.topCategory.amount}
+            totalSpent={expenseData.totalSpent}
+            highestMonth={expenseData.highestMonth?.month}
+            highestMonthAmount={expenseData.highestMonth?.total}
+            monthlyAverage={expenseData.monthlyAverage}
+            highestWeek={expenseData.highestWeek?.week}
+            highestWeekAmount={expenseData.highestWeek?.total}
+            weeklyAverage={expenseData.weeklyAverage}
+            highestDate={expenseData.highestDate?.date}
+            highestDateAmount={expenseData.highestDate?.total}
+            dailyAverage={expenseData.dailyAverage}
+            topCategory={expenseData.topCategory}
+            topCategoryAmount={expenseData.topAmount}
           />
         )}
 
@@ -136,18 +145,18 @@ const YearlySum = () => {
         )}
 
         {/* Charts Section */}
-        {expenseData.length > 0 && !loading && (
+        {hasExpenses && !loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart */}
+            {/* Bar Chart - Category Breakdown */}
             <BarChart 
-              data={chartService.prepareBarChartData(expenseData)}
+              data={expenseData.categoryBreakdown || []}
               isLoading={loading}
               title={`${currentYear} Expenses by Category`}
             />
 
-            {/* Pie Chart */}
+            {/* Pie Chart - Category Breakdown */}
             <PieChart 
-              data={chartService.preparePieChartData(expenseData)}
+              data={expenseData.categoryBreakdown || []}
               isLoading={loading}
               title={`${currentYear} Spending Distribution`}
             />
@@ -163,7 +172,7 @@ const YearlySum = () => {
         )}
 
         {/* No Data Message */}
-        {expenseData.length === 0 && !loading && (
+        {!hasExpenses && !loading && (
           <div className="bg-white rounded-xl p-12 text-center" style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 
@@ -174,7 +183,7 @@ const YearlySum = () => {
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No expenses found</h3>
-            <p className="text-gray-500">No expenses recorded for year {currentYear}</p>
+            <p className="text-gray-500">No expenses recorded for this year.</p>
           </div>
         )}
       </div>

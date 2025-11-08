@@ -9,7 +9,14 @@ const CustomBarChart = ({
   title = "Monthly Expenses by Category" 
 }) => {
   const config = chartService.getMonthlyBarChartConfig();
-  const transformedData = chartService.transformDataForChart(data, 'bar');
+  
+  // Transform category breakdown data for chart
+  const transformedData = data.map(item => ({
+    name: item.category,
+    amount: item.amount,
+    color: item.color,
+    formattedAmount: chartService.formatCurrency(item.amount)
+  }));
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -23,7 +30,7 @@ const CustomBarChart = ({
             {chartService.formatCurrency(payload[0].value)}
           </p>
           <p className="text-gray-500 text-sm">
-            Monthly spending
+            Category spending
           </p>
         </div>
       );
@@ -114,7 +121,7 @@ const CustomBarChart = ({
               stroke={config.cartesianGrid.stroke}
             />
             <XAxis 
-              dataKey="category" 
+              dataKey="name" 
               tick={config.xAxis.tick}
               angle={config.xAxis.angle}
               textAnchor={config.xAxis.textAnchor}

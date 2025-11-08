@@ -4,17 +4,20 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const YearlyBarChart = ({ 
   data = [], 
   isLoading = false, 
-  title = "Yearly Expenses by Category" 
+  title = "Expenses by Category" 
 }) => {
+  // Transform data to ensure it has the right structure
+  // categoryBreakdown: {category, amount, color}
+  const transformedData = data.map(item => ({
+    name: item.category || item.name,
+    amount: Number(item.amount || 0)
+  }));
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const formatCurrency = (amount) => {
-        if (amount >= 1000000) {
-          return `Rs. ${(amount / 1000000).toFixed(1)}M`;
-        } else if (amount >= 1000) {
-          return `Rs. ${(amount / 1000).toFixed(1)}K`;
-        }
-        return `Rs. ${Number(amount).toFixed(2)}`;
+        const num = Number(amount);
+        return `Rs. ${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       };
 
       return (
@@ -51,10 +54,10 @@ const YearlyBarChart = ({
       <h3 className="text-xl font-semibold text-gray-800 mb-4">{title}</h3>
       <div style={{ width: '100%', height: 400 }}>
         <ResponsiveContainer>
-          <BarChart data={data}>
+          <BarChart data={transformedData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
-              dataKey="category" 
+              dataKey="name" 
               tick={{ fontSize: 10 }}
               angle={-45}
               textAnchor="end"

@@ -1,17 +1,13 @@
 // Data service for Weekly Summary components
 // Acts as a microservice data layer for API calls and data management
 
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
+
 class WeeklyDataService {
   constructor() {
-    this.sampleData = [
-      { category: 'Groceries', amount: 275.50, color: '#4A90E2' },
-      { category: 'Transport', amount: 89.25, color: '#2ECC71' },
-      { category: 'Food & Dining', amount: 165.75, color: '#E74C3C' },
-      { category: 'Entertainment', amount: 120.00, color: '#F39C12' },
-      { category: 'Utilities', amount: 85.30, color: '#9B59B6' },
-      { category: 'Shopping', amount: 234.80, color: '#1ABC9C' },
-      { category: 'Healthcare', amount: 45.90, color: '#34495E' }
-    ];
+    // Removed sampleData - using real API now
   }
 
   // Get start of week (Monday as first day)
@@ -32,21 +28,69 @@ class WeeklyDataService {
     return end;
   }
 
+  // Helper function to get YEARWEEK format for MySQL
+  getYearWeek(date) {
+    const year = date.getFullYear();
+    const weekNumber = this.getWeekNumber(date);
+    return `${year}${String(weekNumber).padStart(2, '0')}`;
+  }
+
   // Fetch weekly expense data for a specific week
-  async getWeeklyExpenses(weekStartDate) {
+  async getWeeklyExpenses(weekStartDate, userId = 1) {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/expenses/weekly?startDate=${weekStartDate.toISOString()}`);
-      // return await response.json();
+      // Get auth token from localStorage
+      const token = localStorage.getItem('token');
       
-      // For now, return sample data
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(this.sampleData);
-        }, 100);
+      if (!userId) {
+        console.error('❌ No user_id provided');
+        return [];
+      }
+
+      // Check if weekStartDate is current week or a selected week
+      const currentWeek = this.getYearWeek(new Date());
+      const selectedWeek = this.getYearWeek(weekStartDate);
+      
+      let endpoint;
+      if (currentWeek === selectedWeek) {
+        endpoint = `${API_URL}/expenses/summary/weekly/${userId}`;
+      } else {
+        endpoint = `${API_URL}/expenses/summary/weekly/${userId}/${selectedWeek}`;
+      }
+
+      console.log('📅 Fetching weekly expenses:', {
+        weekStartDate: weekStartDate.toISOString(),
+        selectedWeek,
+        currentWeek,
+        userId,
+        endpoint
       });
+
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await axios.get(endpoint, { headers });
+      
+      console.log('📊 Weekly API Response:', response.data);
+
+      if (response.data.success) {
+        // Handle empty week
+        if (response.data.message === 'No expenses recorded this week') {
+          return [];
+        }
+
+        // Return the categoryBreakdown array for backward compatibility with existing code
+        return response.data.data.categoryBreakdown || [];
+      }
+
+      return [];
+
     } catch (error) {
-      console.error('Error fetching weekly expenses:', error);
+      console.error('❌ Error fetching weekly expenses:', error);
       return [];
     }
   }

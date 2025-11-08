@@ -29,7 +29,9 @@ const LastWeek = () => {
   const loadPreviousWeekData = async (weekStart) => {
     setLoading(true);
     try {
-      const data = await weeklyDataService.getWeeklyExpenses(weekStart);
+      // Get userId from localStorage (same pattern as daily/weekly summary)
+      const userId = localStorage.getItem('user_id') || 1;
+      const data = await weeklyDataService.getWeeklyExpenses(weekStart, userId);
       setExpenseData(data);
     } catch (error) {
       console.error('Error loading previous week data:', error);

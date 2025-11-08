@@ -21,7 +21,17 @@ const MonthlySum = () => {
     selectedMonthFromState ? new Date(selectedMonthFromState) : new Date()
   );
   
-  const [expenseData, setExpenseData] = useState([]);
+  const [expenseData, setExpenseData] = useState({
+    categoryBreakdown: [],
+    weeklyBreakdown: [],
+    totalSpent: 0,
+    dailyAverage: 0,
+    weeklyAverage: 0,
+    highestWeek: { week: null, total: 0 },
+    highestDate: { date: null, total: 0 },
+    topCategory: null,
+    topAmount: 0
+  });
   const [loading, setLoading] = useState(false);
   const summaryRef = useRef(null);
 
@@ -35,11 +45,27 @@ const MonthlySum = () => {
     try {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
-      const data = await dataService.getMonthlyExpenses(year, month);
+      // Get userId from localStorage (same pattern as other summaries)
+      const userId = localStorage.getItem('user_id') || 1;
+      const data = await dataService.getMonthlyExpenses(year, month, userId);
+      
+      console.log('📦 Received monthly expense data:', data);
+      
+      // Set the full data object from API
       setExpenseData(data);
     } catch (error) {
       console.error('Error loading monthly expense data:', error);
-      setExpenseData([]);
+      setExpenseData({
+        categoryBreakdown: [],
+        weeklyBreakdown: [],
+        totalSpent: 0,
+        dailyAverage: 0,
+        weeklyAverage: 0,
+        highestWeek: { week: null, total: 0 },
+        highestDate: { date: null, total: 0 },
+        topCategory: null,
+        topAmount: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -102,25 +128,31 @@ const MonthlySum = () => {
         
         {/* Summary Cards Section - 6 cards for monthly */}
         <Cards 
-          expenseData={expenseData}
-          currentMonth={currentMonth}
-          isLoading={loading}
+          totalSpent={expenseData.totalSpent}
+          dailyAverage={expenseData.dailyAverage}
+          weeklyAverage={expenseData.weeklyAverage}
+          highestWeek={expenseData.highestWeek?.week}
+          highestWeekAmount={expenseData.highestWeek?.total}
+          highestDate={expenseData.highestDate?.date}
+          highestDateAmount={expenseData.highestDate?.total}
+          topCategory={expenseData.topCategory}
+          topCategoryAmount={expenseData.topAmount}
         />
 
         {/* Charts Section */}
-        {expenseData.length > 0 && !loading && (
+        {expenseData.categoryBreakdown?.length > 0 && !loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart */}
+            {/* Bar Chart - Category Breakdown */}
             <BarChart 
-              data={expenseData}
+              data={expenseData.categoryBreakdown || []}
               onBarClick={handleBarClick}
               isLoading={loading}
               title="Monthly Expenses by Category"
             />
 
-            {/* Pie Chart */}
+            {/* Pie Chart - Category Distribution */}
             <PieChart 
-              data={expenseData}
+              data={expenseData.categoryBreakdown || []}
               onPieClick={handlePieClick}
               isLoading={loading}
               title="Monthly Spending Distribution"
@@ -130,7 +162,7 @@ const MonthlySum = () => {
         )}
 
         {/* Loading State */}
-        {loading && expenseData.length === 0 && (
+        {loading && expenseData.categoryBreakdown?.length === 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BarChart isLoading={true} />
             <PieChart isLoading={true} />
@@ -138,7 +170,7 @@ const MonthlySum = () => {
         )}
 
         {/* No Data Message */}
-        {expenseData.length === 0 && !loading && (
+        {expenseData.categoryBreakdown?.length === 0 && !loading && (
           <div className="bg-white rounded-xl p-12 text-center" style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 

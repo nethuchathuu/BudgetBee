@@ -24,6 +24,14 @@ const WeeklySum = () => {
   );
   
   const [expenseData, setExpenseData] = useState([]);
+  const [summaryData, setSummaryData] = useState({
+    totalSpent: 0,
+    dailyAverage: 0,
+    highestDay: null,
+    highestDayAmount: 0,
+    topCategory: null,
+    topAmount: 0
+  });
   const [loading, setLoading] = useState(false);
   const summaryRef = useRef(null);
 
@@ -35,11 +43,50 @@ const WeeklySum = () => {
   const loadExpenseData = async () => {
     setLoading(true);
     try {
-      const data = await dataService.getWeeklyExpenses(currentWeek);
-      setExpenseData(data);
+      // Get userId from localStorage (same pattern as daily summary)
+      const userId = localStorage.getItem('user_id') || 1;
+      
+      // Get category breakdown from API (backward compatibility)
+      const categoryBreakdown = await dataService.getWeeklyExpenses(currentWeek, userId);
+      setExpenseData(categoryBreakdown);
+      
+      // Calculate summary data from categoryBreakdown
+      if (categoryBreakdown.length > 0) {
+        const totalSpent = dataService.calculateTotalSpent(categoryBreakdown);
+        const dailyAverage = dataService.calculateDailyAverage(categoryBreakdown);
+        const topCategory = dataService.getTopCategory(categoryBreakdown);
+        const highestDay = dataService.getHighestExpenseDay(categoryBreakdown);
+        
+        setSummaryData({
+          totalSpent,
+          dailyAverage,
+          highestDay: highestDay.day,
+          highestDayAmount: highestDay.amount,
+          topCategory: topCategory.category,
+          topAmount: topCategory.amount
+        });
+      } else {
+        // Reset to empty state
+        setSummaryData({
+          totalSpent: 0,
+          dailyAverage: 0,
+          highestDay: null,
+          highestDayAmount: 0,
+          topCategory: null,
+          topAmount: 0
+        });
+      }
     } catch (error) {
       console.error('Error loading weekly expense data:', error);
       setExpenseData([]);
+      setSummaryData({
+        totalSpent: 0,
+        dailyAverage: 0,
+        highestDay: null,
+        highestDayAmount: 0,
+        topCategory: null,
+        topAmount: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -104,9 +151,12 @@ const WeeklySum = () => {
         
         {/* Summary Cards Section - 4 cards for weekly */}
         <Cards 
-          expenseData={expenseData}
-          currentWeek={currentWeek}
-          isLoading={loading}
+          totalSpent={summaryData.totalSpent}
+          dailyAverage={summaryData.dailyAverage}
+          highestDay={summaryData.highestDay}
+          highestDayAmount={summaryData.highestDayAmount}
+          topCategory={summaryData.topCategory}
+          topCategoryAmount={summaryData.topAmount}
         />
 
         {/* Charts Section */}

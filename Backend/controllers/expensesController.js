@@ -216,29 +216,29 @@ const expensesController = {
       const { user_id } = req.params;
 
       // Total spent this week
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = YEARWEEK(CURDATE(),1);`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1);`;
       const [totalRows] = await db.execute(totalQuery, [user_id]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this week' });
       }
 
       // Category breakdown
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = YEARWEEK(CURDATE(),1) GROUP BY category_name ORDER BY total DESC;`;
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1) GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
       // Top category
       const topCat = categoryBreakdown.length > 0 ? { category: categoryBreakdown[0].category, amount: categoryBreakdown[0].amount } : { category: null, amount: 0 };
 
       // Highest day (group by date)
-      const highestDayQuery = `SELECT DATE(bill_date) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = YEARWEEK(CURDATE(),1) GROUP BY DATE(bill_date) ORDER BY total DESC LIMIT 1;`;
+      const highestDayQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1) GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDayRows] = await db.execute(highestDayQuery, [user_id]);
-      const highestDay = highestDayRows.length > 0 ? { date: highestDayRows[0].date, total: highestDayRows[0].total } : { date: null, total: 0 };
+      const highestDay = highestDayRows.length > 0 ? { date: highestDayRows[0].date, total: Number(highestDayRows[0].total) || 0 } : { date: null, total: 0 };
 
       // Daily average
-      const dailyAverage = Number(totalSpent) / 7;
+      const dailyAverage = totalSpent / 7;
 
       res.status(200).json({
         success: true,
@@ -265,25 +265,25 @@ const expensesController = {
     try {
       const { user_id, selected_week } = req.params;
 
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = ?;`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = ?;`;
       const [totalRows] = await db.execute(totalQuery, [user_id, selected_week]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this week' });
       }
 
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = ? GROUP BY category_name ORDER BY total DESC;`;
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = ? GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id, selected_week]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
       const topCat = categoryBreakdown.length > 0 ? { category: categoryBreakdown[0].category, amount: categoryBreakdown[0].amount } : { category: null, amount: 0 };
 
-      const highestDayQuery = `SELECT DATE(bill_date) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(bill_date,1) = ? GROUP BY DATE(bill_date) ORDER BY total DESC LIMIT 1;`;
+      const highestDayQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEARWEEK(created_at,1) = ? GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDayRows] = await db.execute(highestDayQuery, [user_id, selected_week]);
-      const highestDay = highestDayRows.length > 0 ? { date: highestDayRows[0].date, total: highestDayRows[0].total } : { date: null, total: 0 };
+      const highestDay = highestDayRows.length > 0 ? { date: highestDayRows[0].date, total: Number(highestDayRows[0].total) || 0 } : { date: null, total: 0 };
 
-      const dailyAverage = Number(totalSpent) / 7;
+      const dailyAverage = totalSpent / 7;
 
       res.status(200).json({ success: true, data: { totalSpent, dailyAverage, highestDay, topCategory: topCat.category, topAmount: topCat.amount, categoryBreakdown } });
     } catch (error) {
@@ -301,43 +301,58 @@ const expensesController = {
       const { user_id } = req.params;
 
       // Total spent this month
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND MONTH(bill_date) = MONTH(CURDATE()) AND YEAR(bill_date) = YEAR(CURDATE());`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE());`;
       const [totalRows] = await db.execute(totalQuery, [user_id]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this month' });
       }
 
-      // Weekly average (approximate as total/4)
-      const weeklyAverage = Number(totalSpent) / 4;
-      // Daily average using days in current month
+      // Days in current month
       const daysInMonthQuery = `SELECT DAY(LAST_DAY(CURDATE())) AS daysInMonth;`;
       const [daysRows] = await db.execute(daysInMonthQuery);
       const daysInMonth = daysRows[0].daysInMonth || 30;
-      const dailyAverage = Number(totalSpent) / daysInMonth;
+      const dailyAverage = totalSpent / daysInMonth;
+
+      // Weekly breakdown and average
+      const weeklyBreakdownQuery = `SELECT WEEK(created_at,1) AS weekNum, SUM(price) AS weekTotal FROM expenses WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY weekNum ORDER BY weekTotal DESC;`;
+      const [weeklyRows] = await db.execute(weeklyBreakdownQuery, [user_id]);
+      const weeklyBreakdown = weeklyRows.map(r => ({ week: Number(r.weekNum), total: Number(r.weekTotal) || 0 }));
+      const weeklyAverage = weeklyBreakdown.length > 0 ? weeklyBreakdown.reduce((sum, w) => sum + w.total, 0) / weeklyBreakdown.length : 0;
 
       // Highest week
-      const highestWeekQuery = `SELECT WEEK(bill_date,1) AS weekNum, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(bill_date) = MONTH(CURDATE()) AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY weekNum ORDER BY total DESC LIMIT 1;`;
-      const [highestWeekRows] = await db.execute(highestWeekQuery, [user_id]);
-      const highestWeek = highestWeekRows.length > 0 ? { weekNum: highestWeekRows[0].weekNum, total: highestWeekRows[0].total } : { weekNum: null, total: 0 };
+      const highestWeek = weeklyBreakdown.length > 0 ? weeklyBreakdown[0] : { week: null, total: 0 };
 
       // Highest date
-      const highestDateQuery = `SELECT bill_date, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(bill_date) = MONTH(CURDATE()) AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY bill_date ORDER BY total DESC LIMIT 1;`;
+      const highestDateQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDateRows] = await db.execute(highestDateQuery, [user_id]);
-      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].bill_date, total: highestDateRows[0].total } : { date: null, total: 0 };
+      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].date, total: Number(highestDateRows[0].total) || 0 } : { date: null, total: 0 };
 
       // Top category
-      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(bill_date) = MONTH(CURDATE()) AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
+      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
       const [topCatRows] = await db.execute(topCategoryQuery, [user_id]);
-      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: topCatRows[0].total } : { category: null, total: 0 };
+      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: Number(topCatRows[0].total) || 0 } : { category: null, total: 0 };
 
       // Category breakdown
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(bill_date) = MONTH(CURDATE()) AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC;`;
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
-      res.status(200).json({ success: true, data: { totalSpent, weeklyAverage, dailyAverage, highestWeek, highestDate, topCategory: topCategory.category, topAmount: topCategory.total, categoryBreakdown } });
+      res.status(200).json({ 
+        success: true, 
+        data: { 
+          totalSpent, 
+          weeklyAverage, 
+          dailyAverage, 
+          highestWeek, 
+          highestDate, 
+          topCategory: topCategory.category, 
+          topAmount: topCategory.total, 
+          categoryBreakdown,
+          weeklyBreakdown
+        } 
+      });
     } catch (error) {
       console.error('Error fetching monthly summary:', error);
       res.status(500).json({
@@ -352,37 +367,58 @@ const expensesController = {
     try {
       const { user_id, year, month } = req.params;
 
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? AND MONTH(bill_date) = ?;`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ?;`;
       const [totalRows] = await db.execute(totalQuery, [user_id, year, month]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this month' });
       }
 
-      const weeklyAverage = Number(totalSpent) / 4;
+      // Days in selected month
       const daysInMonthQuery = `SELECT DAY(LAST_DAY(STR_TO_DATE(CONCAT(?, '-', ? , '-01'), '%Y-%m-%d'))) AS daysInMonth;`;
       const [daysRows] = await db.execute(daysInMonthQuery, [year, month]);
       const daysInMonth = daysRows[0].daysInMonth || 30;
-      const dailyAverage = Number(totalSpent) / daysInMonth;
+      const dailyAverage = totalSpent / daysInMonth;
 
-      const highestWeekQuery = `SELECT WEEK(bill_date,1) AS weekNum, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? AND MONTH(bill_date) = ? GROUP BY weekNum ORDER BY total DESC LIMIT 1;`;
-      const [highestWeekRows] = await db.execute(highestWeekQuery, [user_id, year, month]);
-      const highestWeek = highestWeekRows.length > 0 ? { weekNum: highestWeekRows[0].weekNum, total: highestWeekRows[0].total } : { weekNum: null, total: 0 };
+      // Weekly breakdown and average
+      const weeklyBreakdownQuery = `SELECT WEEK(created_at,1) AS weekNum, SUM(price) AS weekTotal FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ? GROUP BY weekNum ORDER BY weekTotal DESC;`;
+      const [weeklyRows] = await db.execute(weeklyBreakdownQuery, [user_id, year, month]);
+      const weeklyBreakdown = weeklyRows.map(r => ({ week: Number(r.weekNum), total: Number(r.weekTotal) || 0 }));
+      const weeklyAverage = weeklyBreakdown.length > 0 ? weeklyBreakdown.reduce((sum, w) => sum + w.total, 0) / weeklyBreakdown.length : 0;
 
-      const highestDateQuery = `SELECT bill_date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? AND MONTH(bill_date) = ? GROUP BY bill_date ORDER BY total DESC LIMIT 1;`;
+      // Highest week
+      const highestWeek = weeklyBreakdown.length > 0 ? weeklyBreakdown[0] : { week: null, total: 0 };
+
+      // Highest date
+      const highestDateQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ? GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDateRows] = await db.execute(highestDateQuery, [user_id, year, month]);
-      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].bill_date, total: highestDateRows[0].total } : { date: null, total: 0 };
+      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].date, total: Number(highestDateRows[0].total) || 0 } : { date: null, total: 0 };
 
-      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? AND MONTH(bill_date) = ? GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
+      // Top category
+      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ? GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
       const [topCatRows] = await db.execute(topCategoryQuery, [user_id, year, month]);
-      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: topCatRows[0].total } : { category: null, total: 0 };
+      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: Number(topCatRows[0].total) || 0 } : { category: null, total: 0 };
 
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? AND MONTH(bill_date) = ? GROUP BY category_name ORDER BY total DESC;`;
+      // Category breakdown
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? AND MONTH(created_at) = ? GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id, year, month]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
-      res.status(200).json({ success: true, data: { totalSpent, weeklyAverage, dailyAverage, highestWeek, highestDate, topCategory: topCategory.category, topAmount: topCategory.total, categoryBreakdown } });
+      res.status(200).json({ 
+        success: true, 
+        data: { 
+          totalSpent, 
+          weeklyAverage, 
+          dailyAverage, 
+          highestWeek, 
+          highestDate, 
+          topCategory: topCategory.category, 
+          topAmount: topCategory.total, 
+          categoryBreakdown,
+          weeklyBreakdown
+        } 
+      });
     } catch (error) {
       console.error('Error fetching selected month summary:', error);
       res.status(500).json({
@@ -397,39 +433,66 @@ const expensesController = {
     try {
       const { user_id } = req.params;
 
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE());`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE());`;
       const [totalRows] = await db.execute(totalQuery, [user_id]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this year' });
       }
 
-      const monthlyAverage = Number(totalSpent) / 12;
-      const weeklyAverage = Number(totalSpent) / 52;
-      const dailyAverage = Number(totalSpent) / 365;
+      // Daily average
+      const dailyAverage = totalSpent / 365;
 
-      const highestMonthQuery = `SELECT MONTHNAME(bill_date) AS monthName, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY MONTH(bill_date) ORDER BY total DESC LIMIT 1;`;
-      const [highestMonthRows] = await db.execute(highestMonthQuery, [user_id]);
-      const highestMonth = highestMonthRows.length > 0 ? { month: highestMonthRows[0].monthName, total: highestMonthRows[0].total } : { month: null, total: 0 };
+      // Monthly breakdown and average
+      const monthlyBreakdownQuery = `SELECT MONTH(created_at) AS monthNumber, MONTHNAME(created_at) AS monthName, SUM(price) AS monthTotal FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY monthNumber, monthName ORDER BY monthNumber;`;
+      const [monthlyRows] = await db.execute(monthlyBreakdownQuery, [user_id]);
+      const monthlyBreakdown = monthlyRows.map(r => ({ month: r.monthName, monthNumber: Number(r.monthNumber), total: Number(r.monthTotal) || 0 }));
+      const monthlyAverage = monthlyBreakdown.length > 0 ? monthlyBreakdown.reduce((sum, m) => sum + m.total, 0) / monthlyBreakdown.length : 0;
 
-      const highestWeekQuery = `SELECT WEEK(bill_date,1) AS weekNum, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY weekNum ORDER BY total DESC LIMIT 1;`;
-      const [highestWeekRows] = await db.execute(highestWeekQuery, [user_id]);
-      const highestWeek = highestWeekRows.length > 0 ? { weekNum: highestWeekRows[0].weekNum, total: highestWeekRows[0].total } : { weekNum: null, total: 0 };
+      // Highest month
+      const highestMonth = monthlyBreakdown.length > 0 ? monthlyBreakdown.reduce((prev, curr) => prev.total > curr.total ? prev : curr) : { month: null, total: 0 };
 
-      const highestDateQuery = `SELECT bill_date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY bill_date ORDER BY total DESC LIMIT 1;`;
+      // Weekly breakdown and average
+      const weeklyBreakdownQuery = `SELECT WEEK(created_at,1) AS weekNum, SUM(price) AS weekTotal FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY weekNum ORDER BY weekTotal DESC;`;
+      const [weeklyRows] = await db.execute(weeklyBreakdownQuery, [user_id]);
+      const weeklyBreakdown = weeklyRows.map(r => ({ week: Number(r.weekNum), total: Number(r.weekTotal) || 0 }));
+      const weeklyAverage = weeklyBreakdown.length > 0 ? weeklyBreakdown.reduce((sum, w) => sum + w.total, 0) / weeklyBreakdown.length : 0;
+
+      // Highest week
+      const highestWeek = weeklyBreakdown.length > 0 ? weeklyBreakdown[0] : { week: null, total: 0 };
+
+      // Highest date
+      const highestDateQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDateRows] = await db.execute(highestDateQuery, [user_id]);
-      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].bill_date, total: highestDateRows[0].total } : { date: null, total: 0 };
+      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].date, total: Number(highestDateRows[0].total) || 0 } : { date: null, total: 0 };
 
-      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
+      // Top category
+      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
       const [topCatRows] = await db.execute(topCategoryQuery, [user_id]);
-      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: topCatRows[0].total } : { category: null, total: 0 };
+      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: Number(topCatRows[0].total) || 0 } : { category: null, total: 0 };
 
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC;`;
+      // Category breakdown
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = YEAR(CURDATE()) GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
-      res.status(200).json({ success: true, data: { totalSpent, monthlyAverage, weeklyAverage, dailyAverage, highestMonth, highestWeek, highestDate, topCategory: topCategory.category, topAmount: topCategory.total, categoryBreakdown } });
+      res.status(200).json({ 
+        success: true, 
+        data: { 
+          totalSpent, 
+          monthlyAverage, 
+          weeklyAverage, 
+          dailyAverage, 
+          highestMonth, 
+          highestWeek, 
+          highestDate, 
+          topCategory: topCategory.category, 
+          topAmount: topCategory.total, 
+          categoryBreakdown,
+          monthlyBreakdown
+        } 
+      });
     } catch (error) {
       console.error('Error fetching yearly summary:', error);
       res.status(500).json({
@@ -444,39 +507,66 @@ const expensesController = {
     try {
       const { user_id, year } = req.params;
 
-      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ?;`;
+      const totalQuery = `SELECT IFNULL(SUM(price),0) AS totalSpent FROM expenses WHERE user_id = ? AND YEAR(created_at) = ?;`;
       const [totalRows] = await db.execute(totalQuery, [user_id, year]);
-      const totalSpent = totalRows[0].totalSpent || 0;
+      const totalSpent = Number(totalRows[0].totalSpent) || 0;
 
-      if (Number(totalSpent) === 0) {
+      if (totalSpent === 0) {
         return res.status(200).json({ success: true, message: 'No expenses recorded this year' });
       }
 
-      const monthlyAverage = Number(totalSpent) / 12;
-      const weeklyAverage = Number(totalSpent) / 52;
-      const dailyAverage = Number(totalSpent) / 365;
+      // Daily average
+      const dailyAverage = totalSpent / 365;
 
-      const highestMonthQuery = `SELECT MONTHNAME(bill_date) AS monthName, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? GROUP BY MONTH(bill_date) ORDER BY total DESC LIMIT 1;`;
-      const [highestMonthRows] = await db.execute(highestMonthQuery, [user_id, year]);
-      const highestMonth = highestMonthRows.length > 0 ? { month: highestMonthRows[0].monthName, total: highestMonthRows[0].total } : { month: null, total: 0 };
+      // Monthly breakdown and average
+      const monthlyBreakdownQuery = `SELECT MONTH(created_at) AS monthNumber, MONTHNAME(created_at) AS monthName, SUM(price) AS monthTotal FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? GROUP BY monthNumber, monthName ORDER BY monthNumber;`;
+      const [monthlyRows] = await db.execute(monthlyBreakdownQuery, [user_id, year]);
+      const monthlyBreakdown = monthlyRows.map(r => ({ month: r.monthName, monthNumber: Number(r.monthNumber), total: Number(r.monthTotal) || 0 }));
+      const monthlyAverage = monthlyBreakdown.length > 0 ? monthlyBreakdown.reduce((sum, m) => sum + m.total, 0) / monthlyBreakdown.length : 0;
 
-      const highestWeekQuery = `SELECT WEEK(bill_date,1) AS weekNum, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? GROUP BY weekNum ORDER BY total DESC LIMIT 1;`;
-      const [highestWeekRows] = await db.execute(highestWeekQuery, [user_id, year]);
-      const highestWeek = highestWeekRows.length > 0 ? { weekNum: highestWeekRows[0].weekNum, total: highestWeekRows[0].total } : { weekNum: null, total: 0 };
+      // Highest month
+      const highestMonth = monthlyBreakdown.length > 0 ? monthlyBreakdown.reduce((prev, curr) => prev.total > curr.total ? prev : curr) : { month: null, total: 0 };
 
-      const highestDateQuery = `SELECT bill_date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? GROUP BY bill_date ORDER BY total DESC LIMIT 1;`;
+      // Weekly breakdown and average
+      const weeklyBreakdownQuery = `SELECT WEEK(created_at,1) AS weekNum, SUM(price) AS weekTotal FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? GROUP BY weekNum ORDER BY weekTotal DESC;`;
+      const [weeklyRows] = await db.execute(weeklyBreakdownQuery, [user_id, year]);
+      const weeklyBreakdown = weeklyRows.map(r => ({ week: Number(r.weekNum), total: Number(r.weekTotal) || 0 }));
+      const weeklyAverage = weeklyBreakdown.length > 0 ? weeklyBreakdown.reduce((sum, w) => sum + w.total, 0) / weeklyBreakdown.length : 0;
+
+      // Highest week
+      const highestWeek = weeklyBreakdown.length > 0 ? weeklyBreakdown[0] : { week: null, total: 0 };
+
+      // Highest date
+      const highestDateQuery = `SELECT DATE(created_at) AS date, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? GROUP BY DATE(created_at) ORDER BY total DESC LIMIT 1;`;
       const [highestDateRows] = await db.execute(highestDateQuery, [user_id, year]);
-      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].bill_date, total: highestDateRows[0].total } : { date: null, total: 0 };
+      const highestDate = highestDateRows.length > 0 ? { date: highestDateRows[0].date, total: Number(highestDateRows[0].total) || 0 } : { date: null, total: 0 };
 
-      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
+      // Top category
+      const topCategoryQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? GROUP BY category_name ORDER BY total DESC LIMIT 1;`;
       const [topCatRows] = await db.execute(topCategoryQuery, [user_id, year]);
-      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: topCatRows[0].total } : { category: null, total: 0 };
+      const topCategory = topCatRows.length > 0 ? { category: topCatRows[0].category_name, total: Number(topCatRows[0].total) || 0 } : { category: null, total: 0 };
 
-      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(bill_date) = ? GROUP BY category_name ORDER BY total DESC;`;
+      // Category breakdown
+      const breakdownQuery = `SELECT category_name, SUM(price) AS total FROM expenses WHERE user_id = ? AND YEAR(created_at) = ? GROUP BY category_name ORDER BY total DESC;`;
       const [breakdownRows] = await db.execute(breakdownQuery, [user_id, year]);
-      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: r.total, color: generateCategoryColor(r.category_name) }));
+      const categoryBreakdown = breakdownRows.map(r => ({ category: r.category_name, amount: Number(r.total) || 0, color: generateCategoryColor(r.category_name) }));
 
-      res.status(200).json({ success: true, data: { totalSpent, monthlyAverage, weeklyAverage, dailyAverage, highestMonth, highestWeek, highestDate, topCategory: topCategory.category, topAmount: topCategory.total, categoryBreakdown } });
+      res.status(200).json({ 
+        success: true, 
+        data: { 
+          totalSpent, 
+          monthlyAverage, 
+          weeklyAverage, 
+          dailyAverage, 
+          highestMonth, 
+          highestWeek, 
+          highestDate, 
+          topCategory: topCategory.category, 
+          topAmount: topCategory.total, 
+          categoryBreakdown,
+          monthlyBreakdown
+        } 
+      });
     } catch (error) {
       console.error('Error fetching selected year summary:', error);
       res.status(500).json({

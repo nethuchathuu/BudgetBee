@@ -14,56 +14,73 @@ const Cards = ({
   topCategory,
   topCategoryAmount
 }) => {
+  // Safe number conversion
+  const safeNumber = (value) => {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+  };
+
   // Format currency values
   const formatCurrency = (amount) => {
-    if (amount >= 1000000) {
-      return `Rs. ${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `Rs. ${(amount / 1000).toFixed(1)}K`;
-    }
-    return `Rs. ${Number(amount).toFixed(2)}`;
+    const num = safeNumber(amount);
+    return `Rs. ${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === 'N/A') return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const cardData = [
     {
       id: 'card-total-spent',
       title: 'Total Spent',
-      value: formatCurrency(totalSpent || 0)
+      value: formatCurrency(totalSpent)
     },
     {
       id: 'card-highest-month',
       title: 'Highest Expense Month',
-      value: `${highestMonth || 'N/A'} - ${formatCurrency(highestMonthAmount || 0)}`
+      value: highestMonth && highestMonth !== 'N/A' 
+        ? `${highestMonth} - ${formatCurrency(highestMonthAmount)}` 
+        : 'N/A'
     },
     {
       id: 'card-monthly-average',
       title: 'Monthly Average',
-      value: formatCurrency(monthlyAverage || 0)
+      value: formatCurrency(monthlyAverage)
     },
     {
       id: 'card-highest-week',
       title: 'Highest Expense Week',
-      value: `${highestWeek || 'N/A'} - ${formatCurrency(highestWeekAmount || 0)}`
+      value: highestWeek && highestWeek !== 'N/A' 
+        ? `${highestWeek} - ${formatCurrency(highestWeekAmount)}` 
+        : 'N/A'
     },
     {
       id: 'card-weekly-average',
       title: 'Weekly Average',
-      value: formatCurrency(weeklyAverage || 0)
+      value: formatCurrency(weeklyAverage)
     },
     {
       id: 'card-highest-date',
       title: 'Highest Expense Date',
-      value: `${highestDate || 'N/A'} - ${formatCurrency(highestDateAmount || 0)}`
+      value: highestDate && highestDate !== 'N/A' 
+        ? `${formatDate(highestDate)} - ${formatCurrency(highestDateAmount)}` 
+        : 'N/A'
     },
     {
       id: 'card-daily-average',
       title: 'Daily Average',
-      value: formatCurrency(dailyAverage || 0)
+      value: formatCurrency(dailyAverage)
     },
     {
       id: 'card-top-category',
       title: 'Top Category',
-      value: `${topCategory || 'N/A'} - ${formatCurrency(topCategoryAmount || 0)}`
+      value: topCategory && topCategory !== 'N/A' 
+        ? `${topCategory} - ${formatCurrency(topCategoryAmount)}` 
+        : 'N/A'
     }
   ];
 

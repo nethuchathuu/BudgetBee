@@ -13,7 +13,17 @@ import {
 const LastMonth = () => {
   const navigate = useNavigate();
   const [previousMonth, setPreviousMonth] = useState(new Date());
-  const [expenseData, setExpenseData] = useState([]);
+  const [expenseData, setExpenseData] = useState({
+    categoryBreakdown: [],
+    weeklyBreakdown: [],
+    totalSpent: 0,
+    dailyAverage: 0,
+    weeklyAverage: 0,
+    highestWeek: { week: null, total: 0 },
+    highestDate: { date: null, total: 0 },
+    topCategory: null,
+    topAmount: 0
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -30,11 +40,24 @@ const LastMonth = () => {
     try {
       const year = month.getFullYear();
       const monthNum = month.getMonth() + 1;
-      const data = await monthlyDataService.getMonthlyExpenses(year, monthNum);
+      // Get userId from localStorage (same pattern as other summaries)
+      const userId = localStorage.getItem('user_id') || 1;
+      const data = await monthlyDataService.getMonthlyExpenses(year, monthNum, userId);
+      console.log('📦 Received previous month data:', data);
       setExpenseData(data);
     } catch (error) {
       console.error('Error loading previous month data:', error);
-      setExpenseData([]);
+      setExpenseData({
+        categoryBreakdown: [],
+        weeklyBreakdown: [],
+        totalSpent: 0,
+        dailyAverage: 0,
+        weeklyAverage: 0,
+        highestWeek: { week: null, total: 0 },
+        highestDate: { date: null, total: 0 },
+        topCategory: null,
+        topAmount: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -86,15 +109,15 @@ const LastMonth = () => {
         {/* Summary Cards */}
         {!loading && (
           <MonthlyCards 
-            totalSpent={monthlyDataService.calculateTotalSpent(expenseData)}
-            highestWeek="Week 3"
-            highestWeekAmount={monthlyDataService.calculateTotalSpent(expenseData) * 0.4}
-            weeklyAverage={monthlyDataService.calculateTotalSpent(expenseData) / 4}
-            highestDate={monthlyDataService.formatDate(new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 15))}
-            highestDateAmount={monthlyDataService.calculateTotalSpent(expenseData) * 0.2}
-            dailyAverage={monthlyDataService.calculateTotalSpent(expenseData) / monthlyDataService.getDaysInMonth(previousMonth)}
-            topCategory={monthlyDataService.getTopCategory(expenseData)?.category || 'N/A'}
-            topCategoryAmount={monthlyDataService.getTopCategory(expenseData)?.amount || 0}
+            totalSpent={expenseData.totalSpent}
+            highestWeek={expenseData.highestWeek?.week}
+            highestWeekAmount={expenseData.highestWeek?.total}
+            weeklyAverage={expenseData.weeklyAverage}
+            highestDate={expenseData.highestDate?.date}
+            highestDateAmount={expenseData.highestDate?.total}
+            dailyAverage={expenseData.dailyAverage}
+            topCategory={expenseData.topCategory}
+            topCategoryAmount={expenseData.topAmount}
           />
         )}
         
@@ -120,20 +143,18 @@ const LastMonth = () => {
         )}
 
         {/* Charts Section */}
-        {expenseData.length > 0 && !loading && (
+        {expenseData.categoryBreakdown?.length > 0 && !loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart */}
+            {/* Bar Chart - Category Breakdown */}
             <MonthlyBarChart 
-              data={expenseData}
-              isLoading={loading}
-              title="Last Month's Expenses by Category"
+              data={expenseData.categoryBreakdown || []}
+              title="Monthly Expenses by Category"
             />
 
-            {/* Pie Chart */}
+            {/* Pie Chart - Category Distribution */}
             <MonthlyPieChart 
-              data={expenseData}
-              isLoading={loading}
-              title="Last Month's Spending Distribution"
+              data={expenseData.categoryBreakdown || []}
+              title="Category Distribution"
               showLegend={true}
             />
           </div>
@@ -148,7 +169,7 @@ const LastMonth = () => {
         )}
 
         {/* No Data Message */}
-        {expenseData.length === 0 && !loading && (
+        {expenseData.categoryBreakdown?.length === 0 && !loading && (
           <div className="bg-white rounded-xl p-12 text-center" style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 
