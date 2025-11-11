@@ -1,6 +1,7 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import chartService from '../services/chartService';
+import { getCategoryColor } from '../../../../utils/categoryColors';
 
 const CustomBarChart = ({ 
   data = [], 
@@ -10,12 +11,12 @@ const CustomBarChart = ({
 }) => {
   const config = chartService.getMonthlyBarChartConfig();
   
-  // Transform category breakdown data for chart
+  // Transform category breakdown data for chart with consistent colors
   const transformedData = data.map(item => ({
-    name: item.category,
-    amount: item.amount,
-    color: item.color,
-    formattedAmount: chartService.formatCurrency(item.amount)
+    name: item.category || item.name,
+    amount: item.amount || item.value,
+    color: getCategoryColor(item.category || item.name),
+    formattedAmount: chartService.formatCurrency(item.amount || item.value)
   }));
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -135,11 +136,14 @@ const CustomBarChart = ({
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="amount" 
-              fill={config.bar.fill}
               radius={config.bar.radius}
               onClick={handleBarClick}
               style={{ cursor: onBarClick ? 'pointer' : 'default' }}
-            />
+            >
+              {transformedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

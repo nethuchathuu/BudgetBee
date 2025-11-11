@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // Import Yearly summary components
 import { Cards as YearlyCards } from '../summary/Yearly';
 import dataService from '../summary/Yearly/services/dataService';
+import { getCategoryColor } from '../../utils/categoryColors';
+import pdfReportGenerator from '../../utils/pdfReportGenerator';
 
 const LastYear = () => {
   const navigate = useNavigate();
@@ -33,6 +35,37 @@ const LastYear = () => {
 
   const handleBackToDashboard = () => {
     navigate('/');
+  };
+
+  const downloadStructuredReport = async () => {
+    try {
+      const reportData = {
+        reportType: 'Yearly',
+        period: `Last Year (${previousYear})`,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: expenseData?.totalSpent || 0,
+        metrics: {
+          monthlyAverage: expenseData?.monthlyAverage,
+          highestMonth: expenseData?.highestMonth && expenseData?.highestMonthAmount > 0
+            ? `${expenseData.highestMonth} - Rs. ${expenseData.highestMonthAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A',
+          topCategory: expenseData?.topCategory && expenseData?.topCategoryAmount > 0
+            ? `${expenseData.topCategory} - Rs. ${expenseData.topCategoryAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData?.categoryBreakdown || [],
+        filename: `lastyear_summary_${previousYear}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading last year report:', error);
+      alert('Failed to generate report. Please try again.');
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -74,9 +107,19 @@ const LastYear = () => {
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar size={20} />
               <span className="text-lg font-medium">
-                {previousYear}
+                Year {previousYear}
               </span>
             </div>
+
+            <button
+              onClick={downloadStructuredReport}
+              disabled={loading || !expenseData || !expenseData.categoryBreakdown?.length}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+              style={{ backgroundColor: '#4A90E2' }}
+            >
+              <Download size={20} />
+              Download PDF
+            </button>
           </div>
           
           <div className="mt-4 p-3 bg-orange-50 rounded-lg">
@@ -160,9 +203,12 @@ const LastYear = () => {
                     <Tooltip content={<CustomTooltip />} />
                     <Bar 
                       dataKey="amount" 
-                      fill="#4A90E2"
                       radius={[4, 4, 0, 0]}
-                    />
+                    >
+                      {(expenseData.categoryBreakdown || []).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -191,13 +237,35 @@ const LastYear = () => {
                       strokeWidth={2}
                     >
                       {(expenseData.categoryBreakdown || []).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              
+              {/* Legend */}
+              {(expenseData.categoryBreakdown || []).length > 0 && (
+                <div className="mt-6 flex flex-wrap gap-4 justify-center">
+                  {(expenseData.categoryBreakdown || []).map((entry, index) => {
+                    const percentage = expenseData.totalSpent > 0 
+                      ? ((entry.amount / expenseData.totalSpent) * 100).toFixed(1) 
+                      : 0;
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: getCategoryColor(entry.category) }}
+                        ></div>
+                        <span className="text-sm text-gray-700">
+                          {entry.category} ({percentage}%)
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}

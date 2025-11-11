@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import SumNav from '../sumNav';
@@ -13,6 +14,7 @@ import PieChart from './components/PieChart';
 // Import services
 import dataService from './services/dataService';
 import chartService from './services/chartService';
+import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 
 const YearlySum = () => {
   const navigate = useNavigate();
@@ -90,6 +92,37 @@ const YearlySum = () => {
     }
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      const reportData = {
+        reportType: 'Yearly',
+        period: `Year ${currentYear}`,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: expenseData.totalSpent,
+        metrics: {
+          monthlyAverage: expenseData.monthlyAverage,
+          highestMonth: expenseData.highestMonth && expenseData.highestMonthAmount > 0
+            ? `${expenseData.highestMonth} - Rs. ${expenseData.highestMonthAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A',
+          topCategory: expenseData.topCategory && expenseData.topCategoryAmount > 0
+            ? `${expenseData.topCategory} - Rs. ${expenseData.topCategoryAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData.categoryBreakdown,
+        filename: `yearly_summary_${currentYear}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading yearly report:', error);
+      alert('Failed to generate report. Please try again.');
+    }
+  };
+
   const hasExpenses = expenseData && expenseData.totalSpent > 0;
 
   return (
@@ -102,7 +135,7 @@ const YearlySum = () => {
         <Header 
           currentYear={currentYear}
           onNavigateYear={navigateYear}
-          onGeneratePDF={generatePDF}
+          onDownloadStructured={downloadStructuredReport}
         />
 
         {/* Summary Cards */}

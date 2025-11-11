@@ -1,16 +1,18 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { getCategoryColor } from '../../../../utils/categoryColors';
 
 const YearlyBarChart = ({ 
   data = [], 
   isLoading = false, 
   title = "Expenses by Category" 
 }) => {
-  // Transform data to ensure it has the right structure
+  // Transform data to ensure it has the right structure with consistent colors
   // categoryBreakdown: {category, amount, color}
   const transformedData = data.map(item => ({
     name: item.category || item.name,
-    amount: Number(item.amount || 0)
+    amount: Number(item.amount || 0),
+    color: getCategoryColor(item.category || item.name)
   }));
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -67,9 +69,12 @@ const YearlyBarChart = ({
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="amount" 
-              fill="#4A90E2"
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {transformedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -1,21 +1,30 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { getCategoryColor } from '../../../../utils/categoryColors';
 
 const YearlyPieChart = ({ 
   data = [], 
   isLoading = false, 
-  title = "Yearly Spending Distribution" 
+  title = "Yearly Spending Distribution",
+  showLegend = true 
 }) => {
+  // Transform data and apply consistent colors
+  const transformedData = data.map(item => ({
+    name: item.category || item.name,
+    value: item.amount || item.value,
+    color: getCategoryColor(item.category || item.name)
+  }));
+
+  const totalAmount = transformedData.reduce((sum, item) => sum + item.value, 0);
+
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const formatCurrency = (amount) => {
-        if (amount >= 1000000) {
-          return `Rs. ${(amount / 1000000).toFixed(1)}M`;
-        } else if (amount >= 1000) {
-          return `Rs. ${(amount / 1000).toFixed(1)}K`;
-        }
-        return `Rs. ${Number(amount).toFixed(2)}`;
+        const num = Number(amount);
+        return `Rs. ${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       };
+
+      const percentage = totalAmount > 0 ? ((payload[0].value / totalAmount) * 100).toFixed(1) : 0;
 
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
@@ -23,10 +32,35 @@ const YearlyPieChart = ({
           <p className="text-blue-600 font-semibold">
             {formatCurrency(payload[0].value)}
           </p>
+          <p className="text-gray-500 text-sm">
+            {percentage}%
+          </p>
         </div>
       );
     }
     return null;
+  };
+
+  // Custom Legend Component
+  const CustomLegend = () => {
+    return (
+      <div className="mt-6 flex flex-wrap gap-4 justify-center">
+        {transformedData.map((entry, index) => {
+          const percentage = totalAmount > 0 ? ((entry.value / totalAmount) * 100).toFixed(1) : 0;
+          return (
+            <div key={index} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              ></div>
+              <span className="text-sm text-gray-700">
+                {entry.name} ({percentage}%)
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -53,17 +87,17 @@ const YearlyPieChart = ({
         <ResponsiveContainer>
           <PieChart>
             <Pie
-              data={data}
+              data={transformedData}
               cx="50%"
               cy="50%"
               innerRadius={40}
               outerRadius={140}
-              dataKey="amount"
-              nameKey="category"
+              dataKey="value"
+              nameKey="name"
               stroke="#ffffff"
               strokeWidth={2}
             >
-              {data.map((entry, index) => (
+              {transformedData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -71,6 +105,7 @@ const YearlyPieChart = ({
           </PieChart>
         </ResponsiveContainer>
       </div>
+      {showLegend && transformedData.length > 0 && <CustomLegend />}
     </div>
   );
 };

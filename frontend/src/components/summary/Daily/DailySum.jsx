@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation } from 'react-router-dom';
@@ -12,6 +12,7 @@ import PieChart from './components/PieChart';
 
 // Import services
 import dataService from './services/dataService';
+import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 
 const DailySum = () => {
   const location = useLocation();
@@ -102,6 +103,43 @@ const DailySum = () => {
     }
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      setLoading(true);
+      
+      const formattedDate = currentDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const reportData = {
+        reportType: 'Daily',
+        period: formattedDate,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: summaryData.totalSpent,
+        metrics: {
+          topCategory: summaryData.topCategory && summaryData.topAmount > 0
+            ? `${summaryData.topCategory} - Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData,
+        filename: `daily_summary_${dataService.formatDateForPDF(currentDate)}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading daily report:', error);
+      alert('Failed to generate report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Event handlers for chart interactions
   const handleBarClick = (data, index) => {
     console.log('Bar clicked:', data, index);
@@ -120,7 +158,7 @@ const DailySum = () => {
         <Header 
           currentDate={currentDate}
           onNavigateDate={navigateDate}
-          onDownloadPDF={generatePDF}
+          onDownloadStructured={downloadStructuredReport}
           isLoading={loading}
         />
         

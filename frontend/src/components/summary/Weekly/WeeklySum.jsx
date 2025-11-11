@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation } from 'react-router-dom';
@@ -12,6 +12,7 @@ import PieChart from './components/PieChart';
 
 // Import services
 import dataService from './services/dataService';
+import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 
 const WeeklySum = () => {
   const location = useLocation();
@@ -125,6 +126,44 @@ const WeeklySum = () => {
     }
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      setLoading(true);
+      
+      const weekInfo = dataService.getCurrentWeekInfo(currentWeek);
+      const period = `Week ${weekInfo.weekNumber} (${weekInfo.weekRange})`;
+      
+      const reportData = {
+        reportType: 'Weekly',
+        period: period,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: summaryData.totalSpent,
+        metrics: {
+          dailyAverage: summaryData.dailyAverage,
+          highestDay: summaryData.highestDay && summaryData.highestDayAmount > 0 
+            ? { date: summaryData.highestDay, total: summaryData.highestDayAmount }
+            : 'N/A',
+          topCategory: summaryData.topCategory && summaryData.topAmount > 0
+            ? `${summaryData.topCategory} - Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData,
+        filename: `weekly_summary_${dataService.formatWeekForPDF(currentWeek)}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading weekly report:', error);
+      alert('Failed to generate report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Event handlers for chart interactions
   const handleBarClick = (data, index) => {
     console.log('Weekly bar clicked:', data, index);
@@ -145,7 +184,7 @@ const WeeklySum = () => {
         <Header 
           currentWeek={currentWeek}
           onNavigateWeek={navigateWeek}
-          onDownloadPDF={generatePDF}
+          onDownloadStructured={downloadStructuredReport}
           isLoading={loading}
         />
         

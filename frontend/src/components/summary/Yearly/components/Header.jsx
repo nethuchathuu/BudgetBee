@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Download, Calendar } from 'lucide-react';
 const Header = ({ 
   currentYear, 
   onNavigateYear, 
-  onGeneratePDF 
+  onDownloadStructured 
 }) => {
   return (
     <div className="bg-white rounded-xl p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
@@ -35,7 +35,7 @@ const Header = ({
 
         {/* PDF Download */}
         <button
-          onClick={onGeneratePDF}
+          onClick={onDownloadStructured}
           className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors"
           style={{ backgroundColor: '#4A90E2' }}
         >

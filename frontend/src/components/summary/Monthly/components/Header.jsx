@@ -6,7 +6,7 @@ import dataService from '../services/dataService';
 const Header = ({ 
   currentMonth, 
   onNavigateMonth, 
-  onDownloadPDF,
+  onDownloadStructured,
   isLoading = false 
 }) => {
   const handlePrevMonth = () => {
@@ -53,7 +53,7 @@ const Header = ({
 
           {/* PDF Download */}
           <button
-            onClick={onDownloadPDF}
+            onClick={onDownloadStructured}
             disabled={isLoading}
             className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
             style={{ backgroundColor: '#4A90E2' }}

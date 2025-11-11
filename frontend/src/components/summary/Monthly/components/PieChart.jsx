@@ -1,6 +1,7 @@
 import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import chartService from '../services/chartService';
+import { getCategoryColor } from '../../../../utils/categoryColors';
 
 const CustomPieChart = ({ 
   data = [], 
@@ -10,8 +11,15 @@ const CustomPieChart = ({
   showLegend = true 
 }) => {
   const config = chartService.getMonthlyPieChartConfig();
-  const transformedData = chartService.transformDataForChart(data, 'pie');
-  const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+  
+  // Transform data and apply consistent colors
+  const transformedData = data.map(item => ({
+    name: item.category || item.name,
+    value: item.amount || item.value,
+    color: getCategoryColor(item.category || item.name)
+  }));
+  
+  const totalAmount = transformedData.reduce((sum, item) => sum + item.value, 0);
 
   const PieTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -40,18 +48,24 @@ const CustomPieChart = ({
     }
   };
 
-  const CustomLegend = ({ payload }) => {
+  // Custom Legend Component
+  const CustomLegend = () => {
     return (
-      <div className="flex flex-wrap justify-center gap-2 mt-4 max-h-20 overflow-y-auto">
-        {payload.map((entry, index) => (
-          <div key={index} className="flex items-center gap-1 text-xs">
-            <div 
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            ></div>
-            <span className="text-gray-600 truncate max-w-16">{entry.value}</span>
-          </div>
-        ))}
+      <div className="mt-6 flex flex-wrap gap-4 justify-center">
+        {transformedData.map((entry, index) => {
+          const percentage = totalAmount > 0 ? ((entry.value / totalAmount) * 100).toFixed(1) : 0;
+          return (
+            <div key={index} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              ></div>
+              <span className="text-sm text-gray-700">
+                {entry.name} ({percentage}%)
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -131,10 +145,10 @@ const CustomPieChart = ({
               ))}
             </Pie>
             <Tooltip content={<PieTooltip />} />
-            {showLegend && <Legend content={<CustomLegend />} />}
           </PieChart>
         </ResponsiveContainer>
       </div>
+      {showLegend && transformedData.length > 0 && <CustomLegend />}
     </div>
   );
 };

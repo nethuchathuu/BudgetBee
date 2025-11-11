@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation } from 'react-router-dom';
@@ -12,6 +12,7 @@ import PieChart from './components/PieChart';
 
 // Import services
 import dataService from './services/dataService';
+import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 
 const MonthlySum = () => {
   const location = useLocation();
@@ -104,6 +105,50 @@ const MonthlySum = () => {
     }
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      setLoading(true);
+      
+      const monthName = currentMonth.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long'
+      });
+      
+      const reportData = {
+        reportType: 'Monthly',
+        period: monthName,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: expenseData.totalSpent,
+        metrics: {
+          dailyAverage: expenseData.dailyAverage,
+          weeklyAverage: expenseData.weeklyAverage,
+          highestWeek: expenseData.highestWeek?.week && expenseData.highestWeek?.total > 0
+            ? `${expenseData.highestWeek.week} - Rs. ${expenseData.highestWeek.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A',
+          highestDate: expenseData.highestDate?.date && expenseData.highestDate?.total > 0
+            ? `${expenseData.highestDate.date} - Rs. ${expenseData.highestDate.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A',
+          topCategory: expenseData.topCategory && expenseData.topAmount > 0
+            ? `${expenseData.topCategory} - Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData.categoryBreakdown,
+        filename: `monthly_summary_${dataService.formatMonthForPDF(currentMonth)}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading monthly report:', error);
+      alert('Failed to generate report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Event handlers for chart interactions
   const handleBarClick = (data, index) => {
     console.log('Monthly bar clicked:', data, index);
@@ -122,7 +167,7 @@ const MonthlySum = () => {
         <Header 
           currentMonth={currentMonth}
           onNavigateMonth={navigateMonth}
-          onDownloadPDF={generatePDF}
+          onDownloadStructured={downloadStructuredReport}
           isLoading={loading}
         />
         

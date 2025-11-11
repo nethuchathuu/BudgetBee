@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Download } from 'lucide-react';
 
 // Import Monthly summary components
 import { 
@@ -9,6 +9,7 @@ import {
   PieChart as MonthlyPieChart,
   dataService as monthlyDataService 
 } from '../summary/Monthly';
+import pdfReportGenerator from '../../utils/pdfReportGenerator';
 
 const LastMonth = () => {
   const navigate = useNavigate();
@@ -67,6 +68,43 @@ const LastMonth = () => {
     navigate('/');
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      const monthName = previousMonth.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long'
+      });
+      
+      const reportData = {
+        reportType: 'Monthly',
+        period: `Last Month (${monthName})`,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: expenseData.totalSpent,
+        metrics: {
+          dailyAverage: expenseData.dailyAverage,
+          weeklyAverage: expenseData.weeklyAverage,
+          highestWeek: expenseData.highestWeek?.week && expenseData.highestWeek?.total > 0
+            ? `${expenseData.highestWeek.week} - Rs. ${expenseData.highestWeek.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A',
+          topCategory: expenseData.topCategory && expenseData.topAmount > 0
+            ? `${expenseData.topCategory} - Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'
+        },
+        categoryBreakdown: expenseData.categoryBreakdown,
+        filename: `lastmonth_summary_${monthlyDataService.formatMonthForPDF(previousMonth)}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading last month report:', error);
+      alert('Failed to generate report. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
       <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -88,6 +126,16 @@ const LastMonth = () => {
                 {monthlyDataService.formatMonth(previousMonth)}
               </span>
             </div>
+
+            <button
+              onClick={downloadStructuredReport}
+              disabled={loading || !expenseData.categoryBreakdown.length}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+              style={{ backgroundColor: '#4A90E2' }}
+            >
+              <Download size={20} />
+              Download PDF
+            </button>
           </div>
           
           <div className="mt-4 p-3 bg-purple-50 rounded-lg">

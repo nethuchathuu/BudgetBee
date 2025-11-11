@@ -1,6 +1,7 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import chartService from '../services/chartService';
+import { getCategoryColor } from '../../../../utils/categoryColors';
 
 const CustomBarChart = ({ 
   data = [], 
@@ -9,7 +10,13 @@ const CustomBarChart = ({
   title = "Expenses by Category" 
 }) => {
   const config = chartService.getBarChartConfig();
-  const transformedData = chartService.transformDataForChart(data, 'bar');
+  
+  // Transform data and apply consistent colors
+  const transformedData = data.map(item => ({
+    category: item.category || item.name,
+    amount: item.amount || item.value,
+    color: getCategoryColor(item.category || item.name)
+  }));
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -119,11 +126,14 @@ const CustomBarChart = ({
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="amount" 
-              fill={config.bar.fill}
               radius={config.bar.radius}
               onClick={handleBarClick}
               style={{ cursor: onBarClick ? 'pointer' : 'default' }}
-            />
+            >
+              {transformedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

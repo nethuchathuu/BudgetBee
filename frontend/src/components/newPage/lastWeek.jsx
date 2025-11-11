@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Download } from 'lucide-react';
 
 // Import Weekly summary components
 import { 
@@ -9,6 +9,7 @@ import {
   PieChart as WeeklyPieChart,
   dataService as weeklyDataService 
 } from '../summary/Weekly';
+import pdfReportGenerator from '../../utils/pdfReportGenerator';
 
 const LastWeek = () => {
   const navigate = useNavigate();
@@ -45,6 +46,34 @@ const LastWeek = () => {
     navigate('/');
   };
 
+  const downloadStructuredReport = async () => {
+    try {
+      // Calculate summary metrics from expenseData
+      const totalSpent = Array.isArray(expenseData) 
+        ? expenseData.reduce((sum, item) => sum + (item.total || 0), 0)
+        : 0;
+      
+      const reportData = {
+        reportType: 'Weekly',
+        period: `Last Week (${weekInfo.formattedRange})`,
+        dateGenerated: new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        totalSpent: totalSpent,
+        metrics: {},
+        categoryBreakdown: expenseData,
+        filename: `lastweek_summary_${weeklyDataService.formatWeekForPDF(previousWeek)}.pdf`
+      };
+
+      await pdfReportGenerator.generateStructuredReport(reportData);
+    } catch (error) {
+      console.error('Error downloading last week report:', error);
+      alert('Failed to generate report. Please try again.');
+    }
+  };
+
   const weekInfo = weeklyDataService.getCurrentWeekInfo(previousWeek);
 
   return (
@@ -68,6 +97,16 @@ const LastWeek = () => {
                 {weekInfo.formattedRange}
               </span>
             </div>
+
+            <button
+              onClick={downloadStructuredReport}
+              disabled={loading || !expenseData.length}
+              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+              style={{ backgroundColor: '#4A90E2' }}
+            >
+              <Download size={20} />
+              Download PDF
+            </button>
           </div>
           
           <div className="mt-4 p-3 bg-green-50 rounded-lg">
