@@ -121,13 +121,13 @@ const DailySum = () => {
           month: 'long', 
           day: 'numeric' 
         }),
-        totalSpent: summaryData.totalSpent,
+        totalSpent: summaryData.totalSpent || 0,
         metrics: {
           topCategory: summaryData.topCategory && summaryData.topAmount > 0
-            ? `${summaryData.topCategory} - Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A'
+            ? `${summaryData.topCategory} — Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null
         },
-        categoryBreakdown: expenseData,
+        categoryBreakdown: expenseData || [],
         filename: `daily_summary_${dataService.formatDateForPDF(currentDate)}.pdf`
       };
 
@@ -186,7 +186,7 @@ const DailySum = () => {
               onPieClick={handlePieClick}
               isLoading={loading}
               title="Spending Distribution"
-              showLegend={false}
+              showLegend={true}
             />
           </div>
         )}

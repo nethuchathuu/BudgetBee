@@ -76,8 +76,8 @@ const LastDay = ({ selectedDate: propSelectedDate }) => {
         totalSpent: expenseData?.totalSpent || 0,
         metrics: {
           topCategory: expenseData?.topCategory && expenseData?.topAmount > 0
-            ? `${expenseData.topCategory} - Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A'
+            ? `${expenseData.topCategory} — Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null
         },
         categoryBreakdown: expenseData?.categoryBreakdown || [],
         filename: `lastday_summary_${dailyDataService.formatDateForPDF(displayDate)}.pdf`

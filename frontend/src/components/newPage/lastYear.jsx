@@ -50,12 +50,20 @@ const LastYear = () => {
         totalSpent: expenseData?.totalSpent || 0,
         metrics: {
           monthlyAverage: expenseData?.monthlyAverage,
-          highestMonth: expenseData?.highestMonth && expenseData?.highestMonthAmount > 0
-            ? `${expenseData.highestMonth} - Rs. ${expenseData.highestMonthAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A',
-          topCategory: expenseData?.topCategory && expenseData?.topCategoryAmount > 0
-            ? `${expenseData.topCategory} - Rs. ${expenseData.topCategoryAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A'
+          weeklyAverage: expenseData?.weeklyAverage,
+          dailyAverage: expenseData?.dailyAverage,
+          highestMonth: expenseData?.highestMonth?.month && expenseData?.highestMonth?.total > 0
+            ? `${expenseData.highestMonth.month} — Rs. ${expenseData.highestMonth.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
+          highestWeek: expenseData?.highestWeek?.week && expenseData?.highestWeek?.total > 0
+            ? `Week ${expenseData.highestWeek.week} — Rs. ${expenseData.highestWeek.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
+          highestDate: expenseData?.highestDate?.date && expenseData?.highestDate?.total > 0
+            ? `${expenseData.highestDate.date} — Rs. ${expenseData.highestDate.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
+          topCategory: expenseData?.topCategory && expenseData?.topAmount > 0
+            ? `${expenseData.topCategory} — Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null
         },
         categoryBreakdown: expenseData?.categoryBreakdown || [],
         filename: `lastyear_summary_${previousYear}.pdf`

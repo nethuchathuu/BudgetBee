@@ -141,15 +141,15 @@ const WeeklySum = () => {
           month: 'long', 
           day: 'numeric' 
         }),
-        totalSpent: summaryData.totalSpent,
+        totalSpent: summaryData.totalSpent || 0,
         metrics: {
           dailyAverage: summaryData.dailyAverage,
           highestDay: summaryData.highestDay && summaryData.highestDayAmount > 0 
-            ? { date: summaryData.highestDay, total: summaryData.highestDayAmount }
-            : 'N/A',
+            ? `${summaryData.highestDay} — Rs. ${summaryData.highestDayAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
           topCategory: summaryData.topCategory && summaryData.topAmount > 0
-            ? `${summaryData.topCategory} - Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A'
+            ? `${summaryData.topCategory} — Rs. ${summaryData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null
         },
         categoryBreakdown: expenseData,
         filename: `weekly_summary_${dataService.formatWeekForPDF(currentWeek)}.pdf`
@@ -215,7 +215,7 @@ const WeeklySum = () => {
               onPieClick={handlePieClick}
               isLoading={loading}
               title="Weekly Spending Distribution"
-              showLegend={false}
+              showLegend={true}
             />
           </div>
         )}

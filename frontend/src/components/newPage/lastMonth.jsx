@@ -83,18 +83,21 @@ const LastMonth = () => {
           month: 'long', 
           day: 'numeric' 
         }),
-        totalSpent: expenseData.totalSpent,
+        totalSpent: expenseData.totalSpent || 0,
         metrics: {
           dailyAverage: expenseData.dailyAverage,
           weeklyAverage: expenseData.weeklyAverage,
           highestWeek: expenseData.highestWeek?.week && expenseData.highestWeek?.total > 0
-            ? `${expenseData.highestWeek.week} - Rs. ${expenseData.highestWeek.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A',
+            ? `${expenseData.highestWeek.week} — Rs. ${expenseData.highestWeek.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
+          highestDate: expenseData.highestDate?.date && expenseData.highestDate?.total > 0
+            ? `${expenseData.highestDate.date} — Rs. ${expenseData.highestDate.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null,
           topCategory: expenseData.topCategory && expenseData.topAmount > 0
-            ? `${expenseData.topCategory} - Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : 'N/A'
+            ? `${expenseData.topCategory} — Rs. ${expenseData.topAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : null
         },
-        categoryBreakdown: expenseData.categoryBreakdown,
+        categoryBreakdown: expenseData.categoryBreakdown || [],
         filename: `lastmonth_summary_${monthlyDataService.formatMonthForPDF(previousMonth)}.pdf`
       };
 

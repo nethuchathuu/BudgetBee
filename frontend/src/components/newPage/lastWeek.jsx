@@ -50,7 +50,7 @@ const LastWeek = () => {
     try {
       // Calculate summary metrics from expenseData
       const totalSpent = Array.isArray(expenseData) 
-        ? expenseData.reduce((sum, item) => sum + (item.total || 0), 0)
+        ? expenseData.reduce((sum, item) => sum + (item.total || item.amount || 0), 0)
         : 0;
       
       const reportData = {
@@ -63,7 +63,7 @@ const LastWeek = () => {
         }),
         totalSpent: totalSpent,
         metrics: {},
-        categoryBreakdown: expenseData,
+        categoryBreakdown: expenseData || [],
         filename: `lastweek_summary_${weeklyDataService.formatWeekForPDF(previousWeek)}.pdf`
       };
 

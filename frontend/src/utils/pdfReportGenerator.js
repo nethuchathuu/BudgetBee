@@ -8,6 +8,40 @@ export class PDFReportGenerator {
   constructor() {
     this.logoText = 'BudgetBee';
     this.organizationName = 'Smart Receipt Organizer';
+    this.logoImage = null;
+    this.loadLogo();
+  }
+
+  /**
+   * Load logo image as base64
+   */
+  async loadLogo() {
+    try {
+      // Import the logo and convert to base64
+      const logoPath = '/src/assets/logo.png';
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      
+      return new Promise((resolve, reject) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          this.logoImage = canvas.toDataURL('image/png');
+          resolve(this.logoImage);
+        };
+        img.onerror = () => {
+          console.warn('Logo image could not be loaded');
+          resolve(null);
+        };
+        img.src = logoPath;
+      });
+    } catch (error) {
+      console.warn('Error loading logo:', error);
+      return null;
+    }
   }
 
   /**
@@ -19,7 +53,7 @@ export class PDFReportGenerator {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#F8F9FA'
+        backgroundColor: '#06402B'
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -72,18 +106,27 @@ export class PDFReportGenerator {
       const pageHeight = pdf.internal.pageSize.getHeight();
       let yPos = 20;
 
-      // Header
-      pdf.setFillColor(74, 144, 226); // #4A90E2
+      // Header with logo
+      pdf.setFillColor(26, 31, 44); // #1a1f2c
       pdf.rect(0, 0, pageWidth, 40, 'F');
+      
+      // Add logo if available
+      if (this.logoImage) {
+        try {
+          pdf.addImage(this.logoImage, 'PNG', 15, 10, 20, 20);
+        } catch (error) {
+          console.warn('Could not add logo to PDF:', error);
+        }
+      }
       
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(24);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(this.logoText, 15, 20);
+      pdf.text(this.logoText, this.logoImage ? 40 : 15, 20);
       
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(this.organizationName, 15, 28);
+      pdf.text(this.organizationName, this.logoImage ? 40 : 15, 28);
 
       // Report Title
       yPos = 50;
@@ -119,29 +162,41 @@ export class PDFReportGenerator {
         return true;
       }
 
-      // Key Metrics Section
+      // Key Summary Highlights Section
       yPos += 15;
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(51, 51, 51);
-      pdf.text('Key Metrics', 15, yPos);
+      pdf.text('Key Summary Highlights', 15, yPos);
 
       yPos += 8;
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
 
-      // Total Spent
+      // Total Spent (always show)
       pdf.setFont('helvetica', 'bold');
       pdf.text('Total Spent:', 20, yPos);
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Rs. ${this.formatNumber(totalSpent)}`, 70, yPos);
 
-      // Display other metrics
+      // Display all metrics dynamically
       const metricKeys = Object.keys(metrics);
       for (let i = 0; i < metricKeys.length; i++) {
         yPos += 6;
+        
+        // Check for page overflow
+        if (yPos > pageHeight - 40) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
         const key = metricKeys[i];
         const value = metrics[key];
+        
+        // Skip if value is null, undefined, or 'N/A'
+        if (value === null || value === undefined || value === 'N/A') {
+          continue;
+        }
         
         pdf.setFont('helvetica', 'bold');
         pdf.text(`${this.formatMetricName(key)}:`, 20, yPos);
@@ -149,13 +204,20 @@ export class PDFReportGenerator {
         pdf.text(this.formatMetricValue(value), 70, yPos);
       }
 
-      // Category Breakdown Section
+      // Category Breakdown Section (with proper percentages)
       if (categoryBreakdown && categoryBreakdown.length > 0) {
         yPos += 15;
+        
+        // Check for page overflow
+        if (yPos > pageHeight - 60) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(51, 51, 51);
-        pdf.text('Category Breakdown', 15, yPos);
+        pdf.text('Spending Distribution by Category', 15, yPos);
 
         yPos += 8;
         pdf.setFontSize(10);
@@ -165,22 +227,45 @@ export class PDFReportGenerator {
         pdf.rect(15, yPos - 4, pageWidth - 30, 8, 'F');
         pdf.setFont('helvetica', 'bold');
         pdf.text('Category', 20, yPos);
-        pdf.text('Amount', pageWidth - 60, yPos);
+        pdf.text('Amount (Rs.)', pageWidth - 70, yPos);
         pdf.text('Percentage', pageWidth - 30, yPos);
 
         yPos += 8;
         pdf.setFont('helvetica', 'normal');
 
-        // Table rows
+        // Calculate total for accurate percentages
+        const calculatedTotal = categoryBreakdown.reduce((sum, item) => {
+          const amount = item.amount || item.total || item.value || 0;
+          return sum + Number(amount);
+        }, 0);
+
+        // Use the higher of totalSpent or calculatedTotal to avoid 0.00% issue
+        const totalForPercentage = Math.max(totalSpent, calculatedTotal);
+
+        // Table rows with calculated percentages
         categoryBreakdown.forEach((item, index) => {
           if (yPos > pageHeight - 40) {
             pdf.addPage();
             yPos = 20;
+            
+            // Redraw table header on new page
+            pdf.setFillColor(240, 240, 240);
+            pdf.rect(15, yPos - 4, pageWidth - 30, 8, 'F');
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Category', 20, yPos);
+            pdf.text('Amount (Rs.)', pageWidth - 70, yPos);
+            pdf.text('Percentage', pageWidth - 30, yPos);
+            yPos += 8;
+            pdf.setFont('helvetica', 'normal');
           }
 
-          const category = item.category || item.name || 'Unknown';
-          const amount = item.amount || item.value || 0;
-          const percentage = totalSpent > 0 ? ((amount / totalSpent) * 100).toFixed(1) : '0.0';
+          const category = item.category || item.name || item.category_name || 'Unknown';
+          const amount = Number(item.amount || item.total || item.value || 0);
+          
+          // Calculate percentage with proper precision
+          const percentage = totalForPercentage > 0 
+            ? ((amount / totalForPercentage) * 100).toFixed(2) 
+            : '0.00';
 
           // Alternating row background
           if (index % 2 === 0) {
@@ -189,7 +274,7 @@ export class PDFReportGenerator {
           }
 
           pdf.text(category, 20, yPos);
-          pdf.text(`Rs. ${this.formatNumber(amount)}`, pageWidth - 60, yPos);
+          pdf.text(this.formatNumber(amount), pageWidth - 70, yPos);
           pdf.text(`${percentage}%`, pageWidth - 30, yPos);
 
           yPos += 6;
