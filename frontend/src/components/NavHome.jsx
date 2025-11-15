@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Bell, User } from "lucide-react";
+import { ChevronDown, Bell, User, Settings } from "lucide-react";
 import logo from "../assets/logo.png";
 
 
@@ -40,9 +40,13 @@ export default function NavBar() {
         </button>
       </div>
 
-      {/* Right: Notification & Profile */}
+      {/* Right: Notification, Settings & Profile */}
       <div className="flex items-center space-x-4">
         <Bell className="h-6 w-6 text-emerald-400 cursor-pointer" />
+        <Settings 
+          className="h-6 w-6 text-emerald-400 cursor-pointer" 
+          onClick={() => navigate("/settings")}
+        />
         <User
           className="h-6 w-6 text-emerald-400 cursor-pointer"
           onClick={() => navigate("/profile")}
