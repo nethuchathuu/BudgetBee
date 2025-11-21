@@ -3,6 +3,7 @@ import { Calendar, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation } from 'react-router-dom';
+import { useTheme } from '../../../context/ThemeContext';
 
 // Import microservice components
 import Header from './components/Header';
@@ -16,6 +17,7 @@ import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 
 const MonthlySum = () => {
   const location = useLocation();
+  const { theme, isDark } = useTheme();
   const selectedMonthFromState = location.state?.selectedMonth;
   
   const [currentMonth, setCurrentMonth] = useState(
@@ -161,7 +163,7 @@ const MonthlySum = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+    <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
       <div ref={summaryRef} className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header Section */}
         <Header 
@@ -216,15 +218,17 @@ const MonthlySum = () => {
 
         {/* No Data Message */}
         {expenseData.categoryBreakdown?.length === 0 && !loading && (
-          <div className="bg-white rounded-xl p-12 text-center" style={{ 
+          <div className={`rounded-xl p-12 text-center ${
+            isDark ? 'bg-[#1a1f2c]' : 'bg-white'
+          }`} style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 
           }}>
-            <div className="text-gray-400 mb-4">
+            <div className={`mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
               <Calendar size={48} className="mx-auto mb-4" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No expenses found</h3>
-            <p className="text-gray-500">No expenses recorded for {dataService.formatMonth(currentMonth)}</p>
+            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No expenses found</h3>
+            <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No expenses recorded for {dataService.formatMonth(currentMonth)}</p>
           </div>
         )}
       </div>

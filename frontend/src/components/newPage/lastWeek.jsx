@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Download } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 // Import Weekly summary components
 import { 
@@ -13,6 +14,7 @@ import pdfReportGenerator from '../../utils/pdfReportGenerator';
 
 const LastWeek = () => {
   const navigate = useNavigate();
+  const { theme, isDark } = useTheme();
   const [previousWeek, setPreviousWeek] = useState(new Date());
   const [expenseData, setExpenseData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -77,21 +79,23 @@ const LastWeek = () => {
   const weekInfo = weeklyDataService.getCurrentWeekInfo(previousWeek);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+    <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+        <div className={`rounded-xl shadow-lg p-6 ${
+          isDark ? 'bg-[#1a1f2c]' : 'bg-white'
+        }`} style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               
               
               <div className="flex items-center gap-2">
                 <Clock style={{ color: '#4A90E2' }} size={24} />
-                <h1 className="text-2xl font-bold text-gray-800">Last Week's Summary</h1>
+                <h1 className="text-2xl font-bold text-gray-400">Last Week's Summary</h1>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-gray-400">
               <Calendar size={20} />
               <span className="text-lg font-medium">
                 {weekInfo.formattedRange}

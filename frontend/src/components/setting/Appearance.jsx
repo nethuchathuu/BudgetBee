@@ -1,9 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sun, Moon, Palette, Check } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function Appearance() {
   const { theme, setTheme, isDark } = useTheme();
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+
+  const handleThemeChange = async (newTheme) => {
+    try {
+      setSaving(true);
+      setSaveStatus(null);
+
+      // Update theme in context (localStorage)
+      setTheme(newTheme);
+
+      // Save to database
+      const userId = localStorage.getItem('user_id');
+      if (userId) {
+        const response = await fetch('http://localhost:5000/api/user/theme', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            theme: newTheme
+          })
+        });
+
+        if (response.ok) {
+          setSaveStatus('success');
+          setTimeout(() => setSaveStatus(null), 3000);
+        } else {
+          console.error('Failed to save theme to database');
+          setSaveStatus('error');
+          setTimeout(() => setSaveStatus(null), 3000);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving theme:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const themeOptions = [
     {
@@ -61,7 +103,7 @@ export default function Appearance() {
             return (
               <div
                 key={option.id}
-                onClick={() => setTheme(option.id)}
+                onClick={() => handleThemeChange(option.id)}
                 className={`
                   relative cursor-pointer rounded-xl overflow-hidden transition-all
                   ${isSelected 
@@ -70,6 +112,7 @@ export default function Appearance() {
                       ? 'ring-2 ring-gray-700 hover:ring-gray-600' 
                       : 'ring-2 ring-gray-200 hover:ring-gray-300'
                   }
+                  ${saving ? 'opacity-50 cursor-wait' : ''}
                 `}
               >
                 {/* Selection Badge */}
@@ -124,7 +167,7 @@ export default function Appearance() {
               <Sun className="h-5 w-5 text-white" />
             )}
           </div>
-          <div>
+          <div className="flex-1">
             <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
               Currently Active: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
             </p>
@@ -132,6 +175,17 @@ export default function Appearance() {
               Your preference is saved and will persist across sessions
             </p>
           </div>
+          {saveStatus === 'success' && (
+            <div className="flex items-center gap-2 text-emerald-600">
+              <Check className="h-5 w-5" />
+              <span className="text-sm font-medium">Saved!</span>
+            </div>
+          )}
+          {saveStatus === 'error' && (
+            <div className="text-red-600 text-sm font-medium">
+              Failed to save
+            </div>
+          )}
         </div>
       </div>
 

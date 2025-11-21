@@ -11,6 +11,7 @@ import LastWeek from "../components/newPage/lastWeek";
 import LastMonth from "../components/newPage/lastMonth";
 import LastYear from "../components/newPage/lastYear";
 import { expensesAPI, getUserId, transformExpenseData, formatDateForAPI } from "../services/api";
+import { useTheme } from '../context/ThemeContext';
 import { 
   CalendarDays, 
   Calendar as CalendarIcon, 
@@ -23,6 +24,7 @@ import {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { theme, isDark } = useTheme();
   const [currentView, setCurrentView] = useState('today'); // 'today', 'daily', 'weekly', 'monthly', 'yearly'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [expenseData, setExpenseData] = useState([]);
@@ -113,21 +115,33 @@ export default function HomePage() {
         return <LastYear />;
       default: // 'today'
         return (
-          <div className="flex h-screen bg-gray-100">
+          <div className={`flex h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-100'}`}>
             {/* Left Sidebar - Dashboard Menu */}
-            <div className="w-64 bg-white shadow-lg border-r border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <div className={`w-64 shadow-lg border-r ${
+              isDark 
+                ? 'bg-[#1a1f2c] border-emerald-400/20' 
+                : 'bg-white border-gray-200'
+            }`}>
+              <div className={`p-6 border-b ${isDark ? 'border-emerald-400/20' : 'border-gray-200'}`}>
+                <h2 className={`text-xl font-bold flex items-center gap-2 ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                   <BarChart3 className="text-emerald-600" size={24} />
                   View Summaries
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">Expense Analytics</p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Expense Analytics
+                </p>
               </div>
               
               <nav className="p-4 space-y-2">
                 <button
                   onClick={() => handleViewChange('daily')}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
+                    isDark
+                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
+                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
                 >
                   <CalendarDays size={20} className="text-emerald-600" />
                   <span className="font-medium">Last Day Summary</span>
@@ -136,7 +150,11 @@ export default function HomePage() {
                 
                 <button
                   onClick={() => handleViewChange('weekly')}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
+                    isDark
+                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
+                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
                 >
                   <CalendarIcon size={20} className="text-emerald-600" />
                   <span className="font-medium">Last Week Summary</span>
@@ -145,7 +163,11 @@ export default function HomePage() {
                 
                 <button
                   onClick={() => handleViewChange('monthly')}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
+                    isDark
+                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
+                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
                 >
                   <TrendingUp size={20} className="text-emerald-600" />
                   <span className="font-medium">Last Month Summary</span>
@@ -154,7 +176,11 @@ export default function HomePage() {
                 
                 <button
                   onClick={() => handleViewChange('yearly')}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors group"
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
+                    isDark
+                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
+                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
                 >
                   <Clock size={20} className="text-emerald-600" />
                   <span className="font-medium">Last Year Summary</span>
@@ -166,11 +192,17 @@ export default function HomePage() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col relative">
               {/* Header with Calendar Button */}
-              <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+              <div className={`shadow-sm border-b p-6 ${
+                isDark 
+                  ? 'bg-[#1a1f2c] border-emerald-400/20' 
+                  : 'bg-white border-gray-200'
+              }`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Today's Expenses</h1>
-                    <p className="text-gray-600">
+                    <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      Today's Expenses
+                    </h1>
+                    <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
                       {selectedDate.toLocaleDateString('en-US', { 
                         weekday: 'long', 
                         year: 'numeric', 
@@ -205,7 +237,11 @@ export default function HomePage() {
                 <div className="p-6 space-y-6">
                   {/* Error Message */}
                   {error && (
-                    <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg">
+                    <div className={`border px-4 py-3 rounded-lg ${
+                      isDark
+                        ? 'bg-yellow-900/20 border-yellow-600 text-yellow-400'
+                        : 'bg-yellow-100 border-yellow-400 text-yellow-700'
+                    }`}>
                       <p className="text-sm">
                         ⚠️ Backend connection failed: {error}. Showing sample data.
                       </p>
@@ -214,10 +250,14 @@ export default function HomePage() {
 
                   {/* Loading State */}
                   {loading && (
-                    <div className="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div className={`rounded-xl shadow-lg p-6 text-center ${
+                      isDark ? 'bg-[#1a1f2c]' : 'bg-white'
+                    }`}>
                       <div className="flex items-center justify-center space-x-2">
                         <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-gray-600">Loading today's expenses...</span>
+                        <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                          Loading today's expenses...
+                        </span>
                       </div>
                     </div>
                   )}
@@ -251,7 +291,11 @@ export default function HomePage() {
       
       {/* Navigation Bar for Summary Views */}
       {currentView !== 'today' && (
-        <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+        <div className={`shadow-sm border-b p-4 ${
+          isDark 
+            ? 'bg-[#1a1f2c] border-emerald-400/20' 
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <button
               onClick={() => handleViewChange('today')}
@@ -268,7 +312,9 @@ export default function HomePage() {
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   currentView === 'daily' 
                     ? 'bg-emerald-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark
+                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Daily
@@ -278,7 +324,9 @@ export default function HomePage() {
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   currentView === 'weekly' 
                     ? 'bg-emerald-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark
+                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Weekly
@@ -288,7 +336,9 @@ export default function HomePage() {
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   currentView === 'monthly' 
                     ? 'bg-emerald-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark
+                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Monthly
@@ -298,7 +348,9 @@ export default function HomePage() {
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   currentView === 'yearly' 
                     ? 'bg-emerald-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : isDark
+                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Yearly

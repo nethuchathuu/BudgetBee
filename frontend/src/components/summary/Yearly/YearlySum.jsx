@@ -4,6 +4,7 @@ import { Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import SumNav from '../sumNav';
+import { useTheme } from '../../../context/ThemeContext';
 
 // Import Yearly components
 import Header from './components/Header';
@@ -19,6 +20,7 @@ import pdfReportGenerator from '../../../utils/pdfReportGenerator';
 const YearlySum = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, isDark } = useTheme();
   const summaryRef = useRef(null);
   
   const [currentYear, setCurrentYear] = useState(
@@ -134,7 +136,7 @@ const YearlySum = () => {
   const hasExpenses = expenseData && expenseData.totalSpent > 0;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
+    <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
       <div ref={summaryRef} className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Navigation */}
         <SumNav pageTitle="Yearly Summary" />
@@ -214,17 +216,21 @@ const YearlySum = () => {
 
         {/* No Data Message */}
         {!hasExpenses && !loading && (
-          <div className="bg-white rounded-xl p-12 text-center" style={{ 
+          <div className={`rounded-xl p-12 text-center ${
+            isDark ? 'bg-[#1a1f2c]' : 'bg-white'
+          }`} style={{ 
             boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
             borderRadius: '15px' 
           }}>
-            <div className="text-gray-400 mb-4">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+            <div className={`mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                isDark ? 'bg-gray-700' : 'bg-gray-200'
+              }`}>
                 <span className="text-2xl">📊</span>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No expenses found</h3>
-            <p className="text-gray-500">No expenses recorded for this year.</p>
+            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No expenses found</h3>
+            <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>No expenses recorded for this year.</p>
           </div>
         )}
       </div>
