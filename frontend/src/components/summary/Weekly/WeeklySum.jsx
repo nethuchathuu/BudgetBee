@@ -49,27 +49,39 @@ const WeeklySum = () => {
       // Get userId from localStorage (same pattern as daily summary)
       const userId = localStorage.getItem('user_id') || 1;
       
-      // Get category breakdown from API (backward compatibility)
-      const categoryBreakdown = await dataService.getWeeklyExpenses(currentWeek, userId);
-      setExpenseData(categoryBreakdown);
+      // Get data from API - now returns array: [{ category_name, category_total, products: [...] }]
+      const data = await dataService.getWeeklyExpenses(currentWeek, userId);
       
-      // Calculate summary data from categoryBreakdown
-      if (categoryBreakdown.length > 0) {
-        const totalSpent = dataService.calculateTotalSpent(categoryBreakdown);
-        const dailyAverage = dataService.calculateDailyAverage(categoryBreakdown);
-        const topCategory = dataService.getTopCategory(categoryBreakdown);
-        const highestDay = dataService.getHighestExpenseDay(categoryBreakdown);
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform to format expected by components: [{ category, amount, color }]
+        const transformedData = data.map((cat, index) => ({
+          category: cat.category_name,
+          amount: cat.category_total,
+          color: `hsl(${(index * 360) / data.length}, 70%, 60%)`
+        }));
+        
+        setExpenseData(transformedData);
+        
+        // Calculate summary data
+        const totalSpent = data.reduce((sum, cat) => sum + (Number(cat.category_total) || 0), 0);
+        const dailyAverage = totalSpent / 7;
+        
+        // Find top category
+        const topCat = data.reduce((prev, curr) => 
+          (curr.category_total > prev.category_total) ? curr : prev
+        );
         
         setSummaryData({
           totalSpent,
           dailyAverage,
-          highestDay: highestDay.day,
-          highestDayAmount: highestDay.amount,
-          topCategory: topCategory.category,
-          topAmount: topCategory.amount
+          highestDay: null,
+          highestDayAmount: 0,
+          topCategory: topCat.category_name,
+          topAmount: topCat.category_total
         });
       } else {
         // Reset to empty state
+        setExpenseData([]);
         setSummaryData({
           totalSpent: 0,
           dailyAverage: 0,

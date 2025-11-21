@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { runLimitChecks } = require('../utils/limitChecker');
 
 // Helper function to generate consistent colors for categories
 const generateCategoryColor = (category) => {
@@ -60,6 +61,12 @@ const expensesController = {
           effectiveCreatedAt
         ]);
         console.log('✅ Expense saved with created_at:', effectiveCreatedAt);
+        
+        // Trigger limit checks after adding expense
+        runLimitChecks(user_id).catch(err => {
+          console.error('Error running limit checks:', err);
+        });
+        
         return res.status(201).json({
           success: true,
           message: 'Expense added successfully',

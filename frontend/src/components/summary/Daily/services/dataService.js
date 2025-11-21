@@ -30,61 +30,44 @@ class DataService {
       const response = await axios.get(endpoint, { headers });
       console.log('📊 API Response:', response.data);
       
-      if (response.data.success && response.data.data) {
-        // Backend returns: { totalSpent, topCategory, topAmount, categoryBreakdown }
-        // Return the full data object, not just categoryBreakdown
-        console.log('✅ Successfully fetched data:', response.data.data);
-        return response.data.data;
+      // Backend now returns array directly: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(response.data)) {
+        console.log('✅ Successfully fetched data:', response.data);
+        return response.data;
       } else {
-        console.warn('⚠️ API returned unsuccessful response:', response.data);
-        // Return empty data structure instead of sample data
-        return {
-          totalSpent: 0,
-          topCategory: null,
-          topAmount: 0,
-          categoryBreakdown: []
-        };
+        console.warn('⚠️ API returned unexpected format:', response.data);
+        return [];
       }
     } catch (error) {
       console.error('❌ Error fetching daily expenses:', error);
-      // Return empty data structure instead of sample data
-      return {
-        totalSpent: 0,
-        topCategory: null,
-        topAmount: 0,
-        categoryBreakdown: []
-      };
+      // Return empty array
+      return [];
     }
   }
 
   // Calculate total spent from expense data
   calculateTotalSpent(expenseData) {
-    // Handle both array format (legacy) and object format (from backend)
+    // Handle array format: [{ category_name, category_total, products: [...] }]
     if (Array.isArray(expenseData)) {
-      return expenseData.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    } else if (expenseData && typeof expenseData.totalSpent === 'number') {
-      return expenseData.totalSpent;
+      return expenseData.reduce((sum, item) => sum + (Number(item.category_total) || 0), 0);
     }
     return 0;
   }
 
   // Find the category with highest spending
   getTopCategory(expenseData) {
-    // Handle object format from backend (preferred)
-    if (expenseData && !Array.isArray(expenseData)) {
-      return {
-        category: expenseData.topCategory || 'N/A',
-        amount: expenseData.topAmount || 0
-      };
-    }
-    
-    // Handle array format (legacy)
     if (!Array.isArray(expenseData) || expenseData.length === 0) {
       return { category: 'N/A', amount: 0 };
     }
-    return expenseData.reduce((prev, current) => 
-      ((prev.amount || 0) > (current.amount || 0)) ? prev : current
+    
+    const topCat = expenseData.reduce((prev, current) => 
+      ((prev.category_total || 0) > (current.category_total || 0)) ? prev : current
     );
+    
+    return {
+      category: topCat.category_name || 'N/A',
+      amount: topCat.category_total || 0
+    };
   }
 
   // Format date for display

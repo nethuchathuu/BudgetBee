@@ -48,14 +48,55 @@ const MonthlySum = () => {
     try {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
-      // Get userId from localStorage (same pattern as other summaries)
       const userId = localStorage.getItem('user_id') || 1;
       const data = await dataService.getMonthlyExpenses(year, month, userId);
       
       console.log('📦 Received monthly expense data:', data);
       
-      // Set the full data object from API
-      setExpenseData(data);
+      // Backend now returns array: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform to format expected by BarChart/PieChart: [{ category, amount, color }]
+        const transformedData = data.map((cat, index) => ({
+          category: cat.category_name,
+          amount: cat.category_total,
+          color: `hsl(${(index * 360) / data.length}, 70%, 60%)`
+        }));
+        
+        // Calculate summary metrics
+        const totalSpent = data.reduce((sum, cat) => sum + (Number(cat.category_total) || 0), 0);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const dailyAverage = totalSpent / daysInMonth;
+        const weeklyAverage = totalSpent / 4; // Approximate
+        
+        // Find top category
+        const topCat = data.reduce((prev, curr) => 
+          (curr.category_total > prev.category_total) ? curr : prev
+        );
+        
+        setExpenseData({
+          categoryBreakdown: transformedData,
+          weeklyBreakdown: [],
+          totalSpent,
+          dailyAverage,
+          weeklyAverage,
+          highestWeek: { week: null, total: 0 },
+          highestDate: { date: null, total: 0 },
+          topCategory: topCat.category_name,
+          topAmount: topCat.category_total
+        });
+      } else {
+        setExpenseData({
+          categoryBreakdown: [],
+          weeklyBreakdown: [],
+          totalSpent: 0,
+          dailyAverage: 0,
+          weeklyAverage: 0,
+          highestWeek: { week: null, total: 0 },
+          highestDate: { date: null, total: 0 },
+          topCategory: null,
+          topAmount: 0
+        });
+      }
     } catch (error) {
       console.error('Error loading monthly expense data:', error);
       setExpenseData({

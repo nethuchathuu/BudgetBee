@@ -122,7 +122,8 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
           }`} />
           Expense Chart
         </h3>
-        <button
+        <br></br>
+        {/*<button
           onClick={downloadChart}
           className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
             isDark
@@ -133,7 +134,7 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
         >
           <Download className="h-4 w-4" />
           <span className="text-sm">Export</span>
-        </button>
+        </button>*/}
       </div>
 
       {/* Chart */}

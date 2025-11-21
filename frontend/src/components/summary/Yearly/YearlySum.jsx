@@ -47,10 +47,69 @@ const YearlySum = () => {
         data = await dataService.getYearlyExpensesByYear(userId, year);
       }
       
-      setExpenseData(data);
+      // Backend now returns array: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(data) && data.length > 0) {
+        // Calculate summary metrics
+        const totalSpent = data.reduce((sum, cat) => sum + (Number(cat.category_total) || 0), 0);
+        const monthlyAverage = totalSpent / 12;
+        const weeklyAverage = totalSpent / 52;
+        const dailyAverage = totalSpent / 365;
+        
+        // Transform to format expected by BarChart/PieChart: [{ category, amount, color }]
+        const categoryBreakdown = data.map((cat, index) => ({
+          category: cat.category_name,
+          amount: cat.category_total,
+          color: `hsl(${(index * 360) / data.length}, 70%, 60%)`
+        }));
+        
+        // Find top category
+        const topCat = data.reduce((prev, curr) => 
+          (curr.category_total > prev.category_total) ? curr : prev
+        );
+        
+        setExpenseData({
+          totalSpent,
+          monthlyAverage,
+          weeklyAverage,
+          dailyAverage,
+          highestMonth: { month: null, total: 0 },
+          highestWeek: { week: null, total: 0 },
+          highestDate: { date: null, total: 0 },
+          topCategory: topCat.category_name,
+          topAmount: topCat.category_total,
+          categoryBreakdown,
+          monthlyBreakdown: []
+        });
+      } else {
+        setExpenseData({
+          totalSpent: 0,
+          monthlyAverage: 0,
+          weeklyAverage: 0,
+          dailyAverage: 0,
+          highestMonth: { month: null, total: 0 },
+          highestWeek: { week: null, total: 0 },
+          highestDate: { date: null, total: 0 },
+          topCategory: null,
+          topAmount: 0,
+          categoryBreakdown: [],
+          monthlyBreakdown: []
+        });
+      }
     } catch (error) {
       console.error('Error loading yearly data:', error);
-      setExpenseData(dataService.getEmptyData());
+      setExpenseData({
+        totalSpent: 0,
+        monthlyAverage: 0,
+        weeklyAverage: 0,
+        dailyAverage: 0,
+        highestMonth: { month: null, total: 0 },
+        highestWeek: { week: null, total: 0 },
+        highestDate: { date: null, total: 0 },
+        topCategory: null,
+        topAmount: 0,
+        categoryBreakdown: [],
+        monthlyBreakdown: []
+      });
     } finally {
       setLoading(false);
     }

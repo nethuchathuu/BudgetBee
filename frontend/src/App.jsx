@@ -14,6 +14,7 @@ import SetHome from "./components/setting/SetHome";
 import NotLimit from "./components/setting/NotLimit";
 import Help from "./components/setting/Help";
 import Reset from "./components/setting/Reset";
+import Notification from "./components/notification/Notification";
 import './index.css';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -30,6 +31,7 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/notification" element={<Notification />} />
             <Route path="/daily-summary" element={<DailySum />} />
             <Route path="/weekly-summary" element={<WeeklySum />} />
             <Route path="/monthly-summary" element={<MonthlySum />} />

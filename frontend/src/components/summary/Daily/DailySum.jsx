@@ -39,19 +39,18 @@ const DailySum = () => {
     try {
       const data = await dataService.getDailyExpenses(dataService.formatDateForPDF(currentDate));
       
-      // Handle new API format vs sample data format
-      if (data.categoryBreakdown) {
-        // New API format: { totalSpent, topCategory, topAmount, categoryBreakdown }
-        setExpenseData(data.categoryBreakdown);
-        setSummaryData({
-          totalSpent: data.totalSpent || 0,
-          topCategory: data.topCategory || null,
-          topAmount: data.topAmount || 0
-        });
-      } else if (Array.isArray(data)) {
-        // Sample data format: array of { category, amount, color }
-        setExpenseData(data);
-        // Calculate summary from sample data
+      // Backend now returns array: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform to format expected by components: [{ category, amount, color }]
+        const transformedData = data.map((cat, index) => ({
+          category: cat.category_name,
+          amount: cat.category_total,
+          color: `hsl(${(index * 360) / data.length}, 70%, 60%)`
+        }));
+        
+        setExpenseData(transformedData);
+        
+        // Calculate summary from transformed data
         const totalSpent = dataService.calculateTotalSpent(data);
         const topCategoryData = dataService.getTopCategory(data);
         setSummaryData({

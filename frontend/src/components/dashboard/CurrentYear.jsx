@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import ExpenseCards from '../newPage/expenseCards';
 import Graph from '../newPage/graph';
 import Chart from '../newPage/chart';
+import Calendar from '../newPage/calendar';
 import { expensesAPI, getUserId } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -10,6 +12,7 @@ const CurrentYear = () => {
   const [expenseData, setExpenseData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Get year for display
   const getYearName = () => {
@@ -86,6 +89,23 @@ const CurrentYear = () => {
             <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
               {getYearName()}
             </p>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              <CalendarIcon size={20} />
+              Calendar
+            </button>
+            
+            {/* Calendar Modal */}
+            <Calendar 
+              selectedDate={new Date().toISOString().split('T')[0]}
+              onDateSelect={() => {}}
+              onClose={() => setShowCalendar(false)}
+              isOpen={showCalendar}
+            />
           </div>
         </div>
       </div>

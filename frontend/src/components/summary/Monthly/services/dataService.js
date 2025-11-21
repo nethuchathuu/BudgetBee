@@ -44,59 +44,25 @@ class MonthlyDataService {
       
       console.log('📊 Monthly API Response:', response.data);
       
-      if (response.data.success) {
-        // Handle empty month
-        if (response.data.message === 'No expenses recorded this month') {
-          return {
-            categoryBreakdown: [],
-            weeklyBreakdown: [],
-            totalSpent: 0,
-            dailyAverage: 0,
-            weeklyAverage: 0,
-            highestWeek: { week: null, total: 0 },
-            highestDate: { date: null, total: 0 },
-            topCategory: null,
-            topAmount: 0
-          };
-        }
-        
-        // Return the full data object from backend
-        return response.data.data;
+      // Backend now returns array directly: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(response.data)) {
+        console.log('✅ Successfully fetched monthly data:', response.data);
+        return response.data;
       } else {
-        console.warn('⚠️ API returned unsuccessful response:', response.data);
-        return {
-          categoryBreakdown: [],
-          weeklyBreakdown: [],
-          totalSpent: 0,
-          dailyAverage: 0,
-          weeklyAverage: 0,
-          highestWeek: { week: null, total: 0 },
-          highestDate: { date: null, total: 0 },
-          topCategory: null,
-          topAmount: 0
-        };
+        console.warn('⚠️ API returned unexpected format:', response.data);
+        return [];
       }
     } catch (error) {
       console.error('❌ Error fetching monthly expenses:', error);
-      // Return empty structure on error
-      return {
-        categoryBreakdown: [],
-        weeklyBreakdown: [],
-        totalSpent: 0,
-        dailyAverage: 0,
-        weeklyAverage: 0,
-        highestWeek: { week: null, total: 0 },
-        highestDate: { date: null, total: 0 },
-        topCategory: null,
-        topAmount: 0
-      };
+      // Return empty array
+      return [];
     }
   }
 
-  // Calculate total spent from expense data (backward compatibility)
+  // Calculate total spent from expense data
   calculateTotalSpent(expenseData) {
     if (Array.isArray(expenseData)) {
-      return expenseData.reduce((sum, item) => sum + (item.amount || 0), 0);
+      return expenseData.reduce((sum, item) => sum + (Number(item.category_total) || 0), 0);
     }
     return 0;
   }
@@ -106,23 +72,23 @@ class MonthlyDataService {
     return Array.isArray(expenseData) ? expenseData.length : 0;
   }
 
-  // Calculate daily average spending (backward compatibility)
-  calculateDailyAverage(expenseData, daysInMonth = 30) {
-    const totalSpent = this.calculateTotalSpent(expenseData);
-    return totalSpent / daysInMonth;
-  }
-
-  // Find the category with highest spending (backward compatibility)
+  // Find the category with highest spending
   getTopCategory(expenseData) {
     if (!Array.isArray(expenseData) || expenseData.length === 0) {
       return { category: 'N/A', amount: 0 };
     }
-    return expenseData.reduce((prev, current) => 
-      (prev.amount > current.amount) ? prev : current
+    
+    const topCat = expenseData.reduce((prev, current) => 
+      ((prev.category_total || 0) > (current.category_total || 0)) ? prev : current
     );
+    
+    return {
+      category: topCat.category_name || 'N/A',
+      amount: topCat.category_total || 0
+    };
   }
 
-  // Get highest single expense (backward compatibility)
+  // Get highest single expense
   getHighestExpense(expenseData) {
     if (!Array.isArray(expenseData) || expenseData.length === 0) return 0;
     return Math.max(...expenseData.map(item => item.amount || 0));

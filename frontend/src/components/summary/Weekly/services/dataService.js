@@ -77,16 +77,13 @@ class WeeklyDataService {
       
       console.log('📊 Weekly API Response:', response.data);
 
-      if (response.data.success) {
-        // Handle empty week
-        if (response.data.message === 'No expenses recorded this week') {
-          return [];
-        }
-
-        // Return the categoryBreakdown array for backward compatibility with existing code
-        return response.data.data.categoryBreakdown || [];
+      // Backend now returns array directly: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(response.data)) {
+        console.log('✅ Successfully fetched weekly data:', response.data);
+        return response.data;
       }
 
+      console.warn('⚠️ API returned unexpected format:', response.data);
       return [];
 
     } catch (error) {

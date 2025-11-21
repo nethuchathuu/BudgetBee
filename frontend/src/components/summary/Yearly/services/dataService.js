@@ -23,11 +23,12 @@ class YearlyDataService {
         }
       });
 
-      if (response.data && response.data.success) {
-        return response.data.data;
+      // Backend now returns array directly: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(response.data)) {
+        return response.data;
       }
       
-      return this.getEmptyData();
+      return [];
     } catch (error) {
       console.error('Error fetching yearly expenses:', error);
       return this.getEmptyData();
@@ -51,11 +52,12 @@ class YearlyDataService {
         }
       });
 
-      if (response.data && response.data.success) {
-        return response.data.data;
+      // Backend now returns array directly: [{ category_name, category_total, products: [...] }]
+      if (Array.isArray(response.data)) {
+        return response.data;
       }
       
-      return this.getEmptyData();
+      return [];
     } catch (error) {
       console.error('Error fetching yearly expenses by year:', error);
       return this.getEmptyData();
