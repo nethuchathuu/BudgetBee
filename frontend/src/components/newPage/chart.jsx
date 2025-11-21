@@ -3,16 +3,16 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
+// Shared color palette for consistent colors across chart and graph
+const COLORS = [
+  '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444',
+  '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+  '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'
+];
+
 const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
   const { isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(null);
-
-  // Color palette for pie chart
-  const COLORS = [
-    '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444',
-    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-    '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'
-  ];
 
   // Transform data for recharts and calculate percentages
   const totalAmount = data.reduce((sum, item) => sum + item.category_total, 0);
@@ -131,6 +131,36 @@ const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
             <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Color Legend */}
+      <div className={`mt-6 pt-4 border-t ${isDark ? 'border-emerald-400/20' : 'border-gray-100'}`}>
+        <div className="grid grid-cols-2 gap-3">
+          {chartData.map((item, index) => (
+            <div 
+              key={index} 
+              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleSliceClick(item, index)}
+            >
+              <div 
+                className="w-4 h-4 rounded-full flex-shrink-0" 
+                style={{ backgroundColor: item.color }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm truncate ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {item.name}
+                </p>
+                <p className={`text-xs ${
+                  isDark ? 'text-gray-500' : 'text-gray-500'
+                }`}>
+                  {item.percentage}%
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

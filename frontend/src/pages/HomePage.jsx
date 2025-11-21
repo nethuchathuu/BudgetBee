@@ -1,367 +1,47 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import NavBar from "../components/NavHome";
-import Header from "../components/newPage/header";
-import ExpenseCards from "../components/newPage/expenseCards";
-import Graph from "../components/newPage/graph";
-import Chart from "../components/newPage/chart";
-import Calendar from "../components/newPage/calendar";
-import LastDay from "../components/newPage/lastDay";
-import LastWeek from "../components/newPage/lastWeek";
-import LastMonth from "../components/newPage/lastMonth";
-import LastYear from "../components/newPage/lastYear";
-import { expensesAPI, getUserId, transformExpenseData, formatDateForAPI } from "../services/api";
+import CurrentDay from "../components/dashboard/CurrentDay";
+import CurrentWeek from "../components/dashboard/CurrentWeek";
+import CurrentMonth from "../components/dashboard/CurrentMonth";
+import CurrentYear from "../components/dashboard/CurrentYear";
 import { useTheme } from '../context/ThemeContext';
-import { 
-  CalendarDays, 
-  Calendar as CalendarIcon, 
-  BarChart3, 
-  TrendingUp, 
-  Clock,
-  ChevronRight,
-  ArrowLeft
-} from 'lucide-react';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { theme, isDark } = useTheme();
-  const [currentView, setCurrentView] = useState('today'); // 'today', 'daily', 'weekly', 'monthly', 'yearly'
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [expenseData, setExpenseData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-
-  // Fetch today's expenses on component mount
-  useEffect(() => {
-    fetchTodaysExpenses();
-  }, []);
-
-  const fetchTodaysExpenses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const userId = getUserId();
-      console.log('Fetching expenses for user:', userId);
-      const response = await expensesAPI.getDailySummary(userId);
-      const transformedData = transformExpenseData(response);
-      setExpenseData(transformedData);
-      console.log('✅ Backend connection successful!');
-    } catch (err) {
-      console.error('Error fetching today\'s expenses:', err);
-      console.warn('⚠️ Backend connection failed:', err.message, 'Showing sample data.');
-      setError('Backend connection failed: ' + err.message);
-      // Fallback to sample data if backend is not available
-      setExpenseData([
-        { category: 'Groceries', amount: 45.50, color: '#8B5CF6' },
-        { category: 'Transport', amount: 12.00, color: '#EF4444' },
-        { category: 'Food & Drink', amount: 28.75, color: '#F59E0B' },
-        { category: 'Entertainment', amount: 15.00, color: '#10B981' },
-        { category: 'Utilities', amount: 85.30, color: '#3B82F6' }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDateClick = async (date) => {
-    // `date` may be a string in YYYY-MM-DD format or an object like { date: 'YYYY-MM-DD' }
-    let dateStr = '';
-    if (typeof date === 'string') dateStr = date;
-    else if (date && typeof date === 'object' && date.date) dateStr = date.date;
-    else if (date instanceof Date) dateStr = date.toISOString().split('T')[0];
-
-    const dateObj = dateStr ? new Date(dateStr) : new Date();
-    setSelectedDate(dateObj);
-    setShowCalendar(false); // Close calendar after selection
-
-    // If clicking on today's date, use today view, otherwise switch to daily view
-    const today = new Date();
-    const isToday = dateObj.toDateString() === today.toDateString();
-
-    if (isToday) {
-      setCurrentView('today');
-      await fetchTodaysExpenses();
-    } else {
-      setCurrentView('daily');
-    }
-  };
-
-  const handleCalendarToggle = () => {
-    setShowCalendar(!showCalendar);
-  };
-
-  const handleViewChange = (view) => {
-    setCurrentView(view);
-    setShowCalendar(false); // Close calendar when changing views
-    
-    // When switching to daily view from menu (not calendar), reset to yesterday
-    if (view === 'daily') {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      setSelectedDate(yesterday);
-    }
-  };
+  
+  // Get default dashboard from localStorage (set in SetHome settings)
+  const [currentView, setCurrentView] = useState(() => {
+    const defaultDashboard = localStorage.getItem('budgetbee-default-dashboard');
+    return defaultDashboard || 'daily'; // Default to 'daily' if not set
+  });
 
   const renderCurrentView = () => {
     switch (currentView) {
       case 'daily':
-        return <LastDay selectedDate={selectedDate} />;
+        return <CurrentDay />;
       case 'weekly':
-        return <LastWeek />;
+        return <CurrentWeek />;
       case 'monthly':
-        return <LastMonth />;
+        return <CurrentMonth />;
       case 'yearly':
-        return <LastYear />;
-      default: // 'today'
-        return (
-          <div className={`flex h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-100'}`}>
-            {/* Left Sidebar - Dashboard Menu */}
-            <div className={`w-64 shadow-lg border-r ${
-              isDark 
-                ? 'bg-[#1a1f2c] border-emerald-400/20' 
-                : 'bg-white border-gray-200'
-            }`}>
-              <div className={`p-6 border-b ${isDark ? 'border-emerald-400/20' : 'border-gray-200'}`}>
-                <h2 className={`text-xl font-bold flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-800'
-                }`}>
-                  <BarChart3 className="text-emerald-600" size={24} />
-                  View Summaries
-                </h2>
-                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Expense Analytics
-                </p>
-              </div>
-              
-              <nav className="p-4 space-y-2">
-                <button
-                  onClick={() => handleViewChange('daily')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
-                    isDark
-                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
-                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                  }`}
-                >
-                  <CalendarDays size={20} className="text-emerald-600" />
-                  <span className="font-medium">Last Day Summary</span>
-                  <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-                
-                <button
-                  onClick={() => handleViewChange('weekly')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
-                    isDark
-                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
-                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                  }`}
-                >
-                  <CalendarIcon size={20} className="text-emerald-600" />
-                  <span className="font-medium">Last Week Summary</span>
-                  <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-                
-                <button
-                  onClick={() => handleViewChange('monthly')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
-                    isDark
-                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
-                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                  }`}
-                >
-                  <TrendingUp size={20} className="text-emerald-600" />
-                  <span className="font-medium">Last Month Summary</span>
-                  <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-                
-                <button
-                  onClick={() => handleViewChange('yearly')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors group ${
-                    isDark
-                      ? 'text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-400'
-                      : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                  }`}
-                >
-                  <Clock size={20} className="text-emerald-600" />
-                  <span className="font-medium">Last Year Summary</span>
-                  <ChevronRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
-              </nav>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col relative">
-              {/* Header with Calendar Button */}
-              <div className={`shadow-sm border-b p-6 ${
-                isDark 
-                  ? 'bg-[#1a1f2c] border-emerald-400/20' 
-                  : 'bg-white border-gray-200'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                      Today's Expenses
-                    </h1>
-                    <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                      {selectedDate.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={handleCalendarToggle}
-                      className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                    >
-                      <CalendarIcon size={20} />
-                      Calendar
-                    </button>
-                    
-                    {/* Calendar Modal */}
-                    <Calendar 
-                      // Calendar expects a YYYY-MM-DD string; HomePage keeps a Date object for display
-                      selectedDate={formatDateForAPI(selectedDate)}
-                      onDateSelect={handleDateClick}
-                      onClose={handleCalendarToggle}
-                      isOpen={showCalendar}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                <div className="p-6 space-y-6">
-                  {/* Error Message */}
-                  {error && (
-                    <div className={`border px-4 py-3 rounded-lg ${
-                      isDark
-                        ? 'bg-yellow-900/20 border-yellow-600 text-yellow-400'
-                        : 'bg-yellow-100 border-yellow-400 text-yellow-700'
-                    }`}>
-                      <p className="text-sm">
-                        ⚠️ Backend connection failed: {error}. Showing sample data.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Loading State */}
-                  {loading && (
-                    <div className={`rounded-xl shadow-lg p-6 text-center ${
-                      isDark ? 'bg-[#1a1f2c]' : 'bg-white'
-                    }`}>
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-                          Loading today's expenses...
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Expense Cards */}
-                  {!loading && <ExpenseCards data={expenseData} />}
-
-                  {/* Charts Section - stacked vertically: Bar (Graph) then Pie (Chart) */}
-                  {!loading && (
-                    <div className="flex flex-col items-center w-full gap-6">
-                      <div className="w-full max-w-4xl">
-                        <Graph data={expenseData} />
-                      </div>
-                      <div className="w-full max-w-2xl">
-                        <Chart data={expenseData} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <CurrentYear />;
+      default:
+        return <CurrentDay />;
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar - Only show on main dashboard view */}
-      {currentView === 'today' && <NavBar />}
+      {/* Navbar */}
+      <NavBar />
       
       {/* Navigation Bar for Summary Views */}
-      {currentView !== 'today' && (
-        <div className={`shadow-sm border-b p-4 ${
-          isDark 
-            ? 'bg-[#1a1f2c] border-emerald-400/20' 
-            : 'bg-white border-gray-200'
-        }`}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <button
-              onClick={() => handleViewChange('today')}
-              className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-            >
-              <ArrowLeft size={20} />
-              Back to Dashboard
-            </button>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleViewChange('daily')}
-                className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                  currentView === 'daily' 
-                    ? 'bg-emerald-600 text-white' 
-                    : isDark
-                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Daily
-              </button>
-              <button
-                onClick={() => handleViewChange('weekly')}
-                className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                  currentView === 'weekly' 
-                    ? 'bg-emerald-600 text-white' 
-                    : isDark
-                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Weekly
-              </button>
-              <button
-                onClick={() => handleViewChange('monthly')}
-                className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                  currentView === 'monthly' 
-                    ? 'bg-emerald-600 text-white' 
-                    : isDark
-                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => handleViewChange('yearly')}
-                className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                  currentView === 'yearly' 
-                    ? 'bg-emerald-600 text-white' 
-                    : isDark
-                      ? 'bg-[#0c111c] text-gray-300 hover:bg-emerald-500/10'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Yearly
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       {/* Main Content */}
-      <main className="flex-grow">
+      <main className={`flex-grow ${isDark ? 'bg-[#0c111c]' : 'bg-gray-100'}`}>
         {renderCurrentView()}
       </main>
     </div>

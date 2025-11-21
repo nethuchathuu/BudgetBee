@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Download, BarChart3 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+
+// Shared color palette - same as Chart component
+const COLORS = [
+  '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444',
+  '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+  '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'
+];
 
 const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
   const { isDark } = useTheme();
   const [activeBar, setActiveBar] = useState(null);
 
-  // Transform data for recharts
-  const chartData = data.map(item => ({
+  // Transform data for recharts with matching colors
+  const chartData = data.map((item, index) => ({
     category: item.category_name,
     amount: item.category_total,
-    fullName: item.category_name
+    fullName: item.category_name,
+    color: COLORS[index % COLORS.length]
   }));
 
   const formatCurrency = (value) => {
@@ -156,11 +164,18 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="amount" 
-              fill={isDark ? '#34d399' : '#10b981'}
               radius={[4, 4, 0, 0]}
               onClick={handleBarClick}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-            />
+              className="cursor-pointer"
+            >
+              {chartData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.color}
+                  opacity={activeBar === index ? 0.8 : 1}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
