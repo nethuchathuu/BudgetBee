@@ -2,6 +2,7 @@ import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import chartService from '../services/chartService';
 import { getCategoryColor } from '../../../../utils/categoryColors';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const CustomPieChart = ({ 
   data = [], 
@@ -10,6 +11,7 @@ const CustomPieChart = ({
   title = "Weekly Spending Distribution",
   showLegend = true 
 }) => {
+  const { theme } = useTheme();
   const config = chartService.getWeeklyPieChartConfig();
   
   // Transform data and apply consistent colors
@@ -26,14 +28,24 @@ const CustomPieChart = ({
       const percentage = chartService.calculatePercentage(payload[0].value, totalAmount);
       return (
         <div 
-          className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg"
+          className={`p-3 border rounded-lg shadow-lg ${
+            theme === 'dark'
+              ? 'bg-[#1a1f2c] border-emerald-400/30'
+              : 'bg-white border-gray-200'
+          }`}
           style={chartService.getWeeklyTooltipStyles()}
         >
-          <p className="font-medium text-gray-800">{payload[0].name}</p>
-          <p className="text-blue-600 font-semibold">
+          <p className={`font-medium ${
+            theme === 'dark' ? 'text-white' : 'text-gray-800'
+          }`}>{payload[0].name}</p>
+          <p className={`font-semibold ${
+            theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>
             {chartService.formatCurrency(payload[0].value)}
           </p>
-          <p className="text-gray-500 text-sm">
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             {percentage}% of weekly spending
           </p>
         </div>
@@ -60,7 +72,9 @@ const CustomPieChart = ({
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: entry.color }}
               ></div>
-              <span className="text-sm text-gray-700">
+              <span className={`text-sm ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>
                 {entry.name} ({percentage}%)
               </span>
             </div>
@@ -73,13 +87,15 @@ const CustomPieChart = ({
   if (isLoading) {
     return (
       <div 
-        className="bg-white rounded-xl p-6" 
-        style={{ 
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-          borderRadius: '15px' 
-        }}
+        className={`rounded-xl p-6 border ${
+          theme === 'dark'
+            ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+            : 'bg-white border-gray-100 shadow-md'
+        }`}
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        <h3 className={`text-xl font-semibold mb-4 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-800'
+        }`}>
           {title}
         </h3>
         <div className="w-full h-80 flex items-center justify-center">
@@ -94,17 +110,21 @@ const CustomPieChart = ({
   if (!data || data.length === 0) {
     return (
       <div 
-        className="bg-white rounded-xl p-6" 
-        style={{ 
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-          borderRadius: '15px' 
-        }}
+        className={`rounded-xl p-6 border ${
+          theme === 'dark'
+            ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+            : 'bg-white border-gray-100 shadow-md'
+        }`}
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        <h3 className={`text-xl font-semibold mb-4 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-800'
+        }`}>
           {title}
         </h3>
         <div className="w-full h-80 flex items-center justify-center">
-          <div className="text-center text-gray-500">
+          <div className={`text-center ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             <div className="text-4xl mb-2">🥧</div>
             <p>No weekly data available</p>
           </div>
@@ -115,13 +135,15 @@ const CustomPieChart = ({
 
   return (
     <div 
-      className="bg-white rounded-xl p-6" 
-      style={{ 
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-        borderRadius: '15px' 
-      }}
+      className={`rounded-xl p-6 border ${
+        theme === 'dark'
+          ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+          : 'bg-white border-gray-100 shadow-md'
+      }`}
     >
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+      <h3 className={`text-xl font-semibold mb-4 ${
+        theme === 'dark' ? 'text-white' : 'text-gray-800'
+      }`}>
         {title}
       </h3>
       <div style={chartService.getResponsiveProps()}>
@@ -153,14 +175,24 @@ const CustomPieChart = ({
       {showLegend && transformedData.length > 0 && <CustomLegend />}
 
       {/* Weekly Summary Below Chart */}
-      <div className="mt-4 grid grid-cols-2 gap-4 text-center border-t pt-4">
+      <div className={`mt-4 grid grid-cols-2 gap-4 text-center border-t pt-4 ${
+        theme === 'dark' ? 'border-emerald-400/20' : 'border-gray-200'
+      }`}>
         <div>
-          <p className="text-sm text-gray-600">Total Categories</p>
-          <p className="font-semibold text-gray-800">{transformedData.length}</p>
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>Total Categories</p>
+          <p className={`font-semibold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-800'
+          }`}>{transformedData.length}</p>
         </div>
         <div>
-          <p className="text-sm text-gray-600">Weekly Total</p>
-          <p className="font-semibold text-gray-800">{chartService.formatCurrency(totalAmount)}</p>
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>Weekly Total</p>
+          <p className={`font-semibold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-800'
+          }`}>{chartService.formatCurrency(totalAmount)}</p>
         </div>
       </div>
     </div>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Download, BarChart3 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
+  const { isDark } = useTheme();
   const [activeBar, setActiveBar] = useState(null);
 
   // Transform data for recharts
@@ -26,9 +28,17 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{label}</p>
-          <p className="text-emerald-600 font-bold">
+        <div className={`p-3 border rounded-lg shadow-lg ${
+          isDark 
+            ? 'bg-[#1a1f2c] border-emerald-400/30' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <p className={`font-semibold ${
+            isDark ? 'text-white' : 'text-gray-800'
+          }`}>{label}</p>
+          <p className={`font-bold ${
+            isDark ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>
             {formatCurrency(payload[0].value)}
           </p>
         </div>
@@ -59,16 +69,28 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <div className={`rounded-2xl p-6 shadow-lg border ${
+        isDark 
+          ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-emerald-600/10' 
+          : 'bg-white border-gray-100'
+      }`}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-emerald-600" />
+          <h3 className={`text-lg font-semibold flex items-center ${
+            isDark ? 'text-white' : 'text-gray-800'
+          }`}>
+            <BarChart3 className={`h-5 w-5 mr-2 ${
+              isDark ? 'text-emerald-400' : 'text-emerald-600'
+            }`} />
             Expense Chart
           </h3>
         </div>
-        <div className="h-64 flex items-center justify-center text-gray-500">
+        <div className={`h-64 flex items-center justify-center ${
+          isDark ? 'text-gray-400' : 'text-gray-500'
+        }`}>
           <div className="text-center">
-            <BarChart3 className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+            <BarChart3 className={`h-12 w-12 mx-auto mb-2 ${
+              isDark ? 'text-gray-600' : 'text-gray-300'
+            }`} />
             <p>No data to display</p>
           </div>
         </div>
@@ -77,20 +99,32 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+    <div className={`rounded-2xl p-6 shadow-lg border ${
+      isDark 
+        ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-emerald-600/10' 
+        : 'bg-white border-gray-100'
+    }`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2 text-emerald-600" />
+        <h3 className={`text-lg font-semibold flex items-center ${
+          isDark ? 'text-white' : 'text-gray-800'
+        }`}>
+          <BarChart3 className={`h-5 w-5 mr-2 ${
+            isDark ? 'text-emerald-400' : 'text-emerald-600'
+          }`} />
           Expense Chart
         </h3>
         <button
           onClick={downloadChart}
-          className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+            isDark
+              ? 'bg-[#0c111c] hover:bg-[#0a0f1a] text-gray-300'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+          }`}
           title="Download chart data"
         >
-          <Download className="h-4 w-4 text-gray-600" />
-          <span className="text-sm text-gray-600">Export</span>
+          <Download className="h-4 w-4" />
+          <span className="text-sm">Export</span>
         </button>
       </div>
 
@@ -101,23 +135,28 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
             data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={isDark ? 'rgba(255,255,255,0.1)' : '#f0f0f0'} 
+            />
             <XAxis 
               dataKey="category"
-              tick={{ fontSize: 12, fill: '#666' }}
+              tick={{ fontSize: 12, fill: isDark ? '#e5e7eb' : '#666' }}
               angle={-45}
               textAnchor="end"
               height={80}
               interval={0}
+              stroke={isDark ? '#374151' : '#d1d5db'}
             />
             <YAxis 
               tickFormatter={formatCurrencyShort}
-              tick={{ fontSize: 12, fill: '#666' }}
+              tick={{ fontSize: 12, fill: isDark ? '#e5e7eb' : '#666' }}
+              stroke={isDark ? '#374151' : '#d1d5db'}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="amount" 
-              fill="#10b981"
+              fill={isDark ? '#34d399' : '#10b981'}
               radius={[4, 4, 0, 0]}
               onClick={handleBarClick}
               className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -127,8 +166,12 @@ const Graph = ({ data = [], onBarClick, currency = 'Rs.' }) => {
       </div>
 
       {/* Legend/Summary */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="flex justify-between text-sm text-gray-600">
+      <div className={`mt-4 pt-4 border-t ${
+        isDark ? 'border-emerald-400/20' : 'border-gray-100'
+      }`}>
+        <div className={`flex justify-between text-sm ${
+          isDark ? 'text-gray-300' : 'text-gray-600'
+        }`}>
           <span>Categories: {data.length}</span>
           <span>
             Total: {formatCurrency(data.reduce((sum, item) => sum + item.category_total, 0))}

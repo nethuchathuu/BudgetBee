@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import AfterUpload from "./AfterUpload";
 import { useToast } from '../../context/ToastContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function UploadLeft({ onProcess }) {
+  const { theme } = useTheme();
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,7 +89,9 @@ export default function UploadLeft({ onProcess }) {
   };
 
   return (
-    <div className="flex flex-col w-1/2 p-6 border-r border-emerald-400/20">
+    <div className={`flex flex-col w-1/2 p-6 border-r ${
+      theme === 'dark' ? 'border-[#334155]' : 'border-[#E2E8F0]'
+    }`}>
       {/* Upload Box */}
       {preview ? (
         <div className="flex flex-col min-h-[400px]">
@@ -99,7 +103,11 @@ export default function UploadLeft({ onProcess }) {
         </div>
       ) : (
         <div
-          className="border-2 border-dashed border-emerald-400/40 rounded-xl p-4 flex flex-col flex-grow min-h-[400px]"
+          className={`border-2 border-dashed rounded-xl p-4 flex flex-col flex-grow min-h-[400px] transition-colors ${
+            theme === 'dark'
+              ? 'border-[#475569] bg-[#1E293B] hover:bg-[#334155]'
+              : 'border-[#CBD5E1] bg-white hover:bg-[#F1F5F9]'
+          }`}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
@@ -109,7 +117,11 @@ export default function UploadLeft({ onProcess }) {
         >
           <label
             htmlFor="fileInput"
-            className="flex flex-col items-center justify-center flex-1 cursor-pointer text-gray-400 hover:text-emerald-500 transition"
+            className={`flex flex-col items-center justify-center flex-1 cursor-pointer transition ${
+              theme === 'dark'
+                ? 'text-[#CBD5E1] hover:text-emerald-400'
+                : 'text-[#475569] hover:text-[#059669]'
+            }`}
           >
             <Upload className="h-12 w-12 mb-2" />
             <p className="text-center">
@@ -140,7 +152,11 @@ export default function UploadLeft({ onProcess }) {
           <div className="mt-3 flex justify-center">
             <label
               htmlFor="cameraInput"
-              className="flex items-center justify-center space-x-2 bg-emerald-400 text-[#0c111c] px-4 py-2 rounded-xl shadow hover:bg-emerald-500 transition cursor-pointer"
+              className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-xl transition cursor-pointer ${
+                theme === 'dark'
+                  ? 'bg-[#1a1f2c] text-white border border-emerald-400/20 hover:bg-[#0f141f] shadow-[0_1px_3px_rgba(0,0,0,0.4)]'
+                  : 'bg-[#059669] text-white hover:bg-[#047857] shadow-[0_1px_3px_rgba(0,0,0,0.15)]'
+              }`}
             >
               <span>Take Photo</span>
             </label>
@@ -157,7 +173,9 @@ export default function UploadLeft({ onProcess }) {
             className={`px-6 py-2 rounded-xl font-semibold transition ${
               isProcessing 
                 ? 'bg-gray-400 text-gray-700 cursor-not-allowed' 
-                : 'bg-emerald-400 text-[#0c111c] hover:bg-emerald-500'
+                : theme === 'dark'
+                  ? 'bg-[#1a1f2c] text-white border border-emerald-400/20 hover:bg-[#0f141f] shadow-[0_1px_3px_rgba(0,0,0,0.4)]'
+                  : 'bg-[#059669] text-white hover:bg-[#047857] shadow-[0_1px_3px_rgba(0,0,0,0.15)]'
             }`}
           >
             {isProcessing ? 'Processing...' : 'Process'}

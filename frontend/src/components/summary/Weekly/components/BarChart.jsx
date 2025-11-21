@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import chartService from '../services/chartService';
 import { getCategoryColor } from '../../../../utils/categoryColors';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const CustomBarChart = ({ 
   data = [], 
@@ -9,6 +10,7 @@ const CustomBarChart = ({
   isLoading = false,
   title = "Weekly Expenses by Category" 
 }) => {
+  const { theme } = useTheme();
   const config = chartService.getWeeklyBarChartConfig();
   
   // Transform data and apply consistent colors
@@ -22,14 +24,24 @@ const CustomBarChart = ({
     if (active && payload && payload.length) {
       return (
         <div 
-          className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg"
+          className={`p-3 border rounded-lg shadow-lg ${
+            theme === 'dark'
+              ? 'bg-[#1a1f2c] border-emerald-400/30'
+              : 'bg-white border-gray-200'
+          }`}
           style={chartService.getWeeklyTooltipStyles()}
         >
-          <p className="font-medium text-gray-800">{label}</p>
-          <p className="text-blue-600 font-semibold">
+          <p className={`font-medium ${
+            theme === 'dark' ? 'text-white' : 'text-gray-800'
+          }`}>{label}</p>
+          <p className={`font-semibold ${
+            theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>
             {chartService.formatCurrency(payload[0].value)}
           </p>
-          <p className="text-gray-500 text-sm">
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             Weekly spending
           </p>
         </div>
@@ -47,13 +59,15 @@ const CustomBarChart = ({
   if (isLoading) {
     return (
       <div 
-        className="bg-white rounded-xl p-6" 
-        style={{ 
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-          borderRadius: '15px' 
-        }}
+        className={`rounded-xl p-6 border ${
+          theme === 'dark'
+            ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+            : 'bg-white border-gray-100 shadow-md'
+        }`}
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        <h3 className={`text-xl font-semibold mb-4 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-800'
+        }`}>
           {title}
         </h3>
         <div className="w-full h-80 flex items-center justify-center">
@@ -80,17 +94,21 @@ const CustomBarChart = ({
   if (!data || data.length === 0) {
     return (
       <div 
-        className="bg-white rounded-xl p-6" 
-        style={{ 
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-          borderRadius: '15px' 
-        }}
+        className={`rounded-xl p-6 border ${
+          theme === 'dark'
+            ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+            : 'bg-white border-gray-100 shadow-md'
+        }`}
       >
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        <h3 className={`text-xl font-semibold mb-4 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-800'
+        }`}>
           {title}
         </h3>
         <div className="w-full h-80 flex items-center justify-center">
-          <div className="text-center text-gray-500">
+          <div className={`text-center ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             <div className="text-4xl mb-2">📊</div>
             <p>No weekly data available</p>
           </div>
@@ -101,13 +119,15 @@ const CustomBarChart = ({
 
   return (
     <div 
-      className="bg-white rounded-xl p-6" 
-      style={{ 
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-        borderRadius: '15px' 
-      }}
+      className={`rounded-xl p-6 border ${
+        theme === 'dark'
+          ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+          : 'bg-white border-gray-100 shadow-md'
+      }`}
     >
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+      <h3 className={`text-xl font-semibold mb-4 ${
+        theme === 'dark' ? 'text-white' : 'text-gray-800'
+      }`}>
         {title}
       </h3>
       <div style={chartService.getResponsiveProps()}>
@@ -118,18 +138,20 @@ const CustomBarChart = ({
           >
             <CartesianGrid 
               strokeDasharray={config.cartesianGrid.strokeDasharray}
-              stroke={config.cartesianGrid.stroke}
+              stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#f0f0f0'}
             />
             <XAxis 
               dataKey="category" 
-              tick={config.xAxis.tick}
+              tick={{ ...config.xAxis.tick, fill: theme === 'dark' ? '#e5e7eb' : '#666' }}
+              stroke={theme === 'dark' ? '#374151' : '#d1d5db'}
               angle={config.xAxis.angle}
               textAnchor={config.xAxis.textAnchor}
               height={config.xAxis.height}
               interval={config.xAxis.interval}
             />
             <YAxis 
-              tick={config.yAxis.tick}
+              tick={{ ...config.yAxis.tick, fill: theme === 'dark' ? '#e5e7eb' : '#666' }}
+              stroke={theme === 'dark' ? '#374151' : '#d1d5db'}
               tickFormatter={(value) => chartService.formatCurrency(value)}
             />
             <Tooltip content={<CustomTooltip />} />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { getCategoryColor } from '../../../../utils/categoryColors';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const YearlyPieChart = ({ 
   data = [], 
@@ -8,6 +9,8 @@ const YearlyPieChart = ({
   title = "Yearly Spending Distribution",
   showLegend = true 
 }) => {
+  const { theme } = useTheme();
+  
   // Transform data and apply consistent colors
   const transformedData = data.map(item => ({
     name: item.category || item.name,
@@ -27,12 +30,22 @@ const YearlyPieChart = ({
       const percentage = totalAmount > 0 ? ((payload[0].value / totalAmount) * 100).toFixed(1) : 0;
 
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-800">{payload[0].name}</p>
-          <p className="text-blue-600 font-semibold">
+        <div className={`p-3 border rounded-lg shadow-lg ${
+          theme === 'dark'
+            ? 'bg-[#1a1f2c] border-emerald-400/30'
+            : 'bg-white border-gray-200'
+        }`}>
+          <p className={`font-medium ${
+            theme === 'dark' ? 'text-white' : 'text-gray-800'
+          }`}>{payload[0].name}</p>
+          <p className={`font-semibold ${
+            theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>
             {formatCurrency(payload[0].value)}
           </p>
-          <p className="text-gray-500 text-sm">
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             {percentage}%
           </p>
         </div>
@@ -53,7 +66,9 @@ const YearlyPieChart = ({
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: entry.color }}
               ></div>
-              <span className="text-sm text-gray-700">
+              <span className={`text-sm ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              }`}>
                 {entry.name} ({percentage}%)
               </span>
             </div>
@@ -65,10 +80,11 @@ const YearlyPieChart = ({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl p-6" style={{ 
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-        borderRadius: '15px' 
-      }}>
+      <div className={`rounded-xl p-6 border ${
+        theme === 'dark'
+          ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+          : 'bg-white border-gray-100 shadow-md'
+      }`}>
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
           <div className="h-80 bg-gray-200 rounded-full mx-auto" style={{ width: '320px', height: '320px' }}></div>
@@ -78,11 +94,14 @@ const YearlyPieChart = ({
   }
 
   return (
-    <div className="bg-white rounded-xl p-6" style={{ 
-      boxShadow: '0 2px 12px rgba(0,0,0,0.08)', 
-      borderRadius: '15px' 
-    }}>
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">{title}</h3>
+    <div className={`rounded-xl p-6 border ${
+      theme === 'dark'
+        ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+        : 'bg-white border-gray-100 shadow-md'
+    }`}>
+      <h3 className={`text-xl font-semibold mb-4 ${
+        theme === 'dark' ? 'text-white' : 'text-gray-800'
+      }`}>{title}</h3>
       <div style={{ width: '100%', height: 400 }}>
         <ResponsiveContainer>
           <PieChart>

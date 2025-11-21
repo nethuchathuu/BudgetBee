@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
+  const { isDark } = useTheme();
   const [activeIndex, setActiveIndex] = useState(null);
 
   // Color palette for pie chart
@@ -29,9 +31,17 @@ const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{data.name}</p>
-          <p className="text-emerald-600 font-bold">
+        <div className={`p-3 border rounded-lg shadow-lg ${
+          isDark 
+            ? 'bg-[#1a1f2c] border-emerald-400/30' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <p className={`font-semibold ${
+            isDark ? 'text-white' : 'text-gray-800'
+          }`}>{data.name}</p>
+          <p className={`font-bold ${
+            isDark ? 'text-emerald-400' : 'text-emerald-600'
+          }`}>
             {formatCurrency(data.value)} ({data.percentage}%)
           </p>
         </div>
@@ -47,16 +57,28 @@ const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <div className={`rounded-2xl p-6 shadow-lg border ${
+        isDark 
+          ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-emerald-600/10' 
+          : 'bg-white border-gray-100'
+      }`}>
         <div className="flex items-center justify-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-            <PieChartIcon className="h-5 w-5 mr-2 text-emerald-600" />
+          <h3 className={`text-lg font-semibold flex items-center ${
+            isDark ? 'text-white' : 'text-gray-800'
+          }`}>
+            <PieChartIcon className={`h-5 w-5 mr-2 ${
+              isDark ? 'text-emerald-400' : 'text-emerald-600'
+            }`} />
             Category Distribution
           </h3>
         </div>
-        <div className="h-80 flex items-center justify-center text-gray-500">
+        <div className={`h-80 flex items-center justify-center ${
+          isDark ? 'text-gray-400' : 'text-gray-500'
+        }`}>
           <div className="text-center">
-            <PieChartIcon className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+            <PieChartIcon className={`h-12 w-12 mx-auto mb-2 ${
+              isDark ? 'text-gray-600' : 'text-gray-300'
+            }`} />
             <p>No data to display</p>
           </div>
         </div>
@@ -65,11 +87,19 @@ const Chart = ({ data = [], onSliceClick, currency = 'Rs.' }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+    <div className={`rounded-2xl p-6 shadow-lg border ${
+      isDark 
+        ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-emerald-600/10' 
+        : 'bg-white border-gray-100'
+    }`}>
       {/* Header */}
       <div className="flex items-center justify-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-          <PieChartIcon className="h-5 w-5 mr-2 text-emerald-600" />
+        <h3 className={`text-lg font-semibold flex items-center ${
+          isDark ? 'text-white' : 'text-gray-800'
+        }`}>
+          <PieChartIcon className={`h-5 w-5 mr-2 ${
+            isDark ? 'text-emerald-400' : 'text-emerald-600'
+          }`} />
           Category Distribution
         </h3>
       </div>

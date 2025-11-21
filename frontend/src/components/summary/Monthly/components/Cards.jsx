@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../../../context/ThemeContext';
 
 const Cards = ({ 
   totalSpent,
@@ -11,6 +12,8 @@ const Cards = ({
   topCategory,
   topCategoryAmount
 }) => {
+  const { theme } = useTheme();
+  
   // Safe number conversion to prevent NaN
   const safeNumber = (value) => {
     const num = Number(value);
@@ -75,26 +78,24 @@ const Cards = ({
       {cardData.map((card) => (
         <div 
           key={card.id}
-          className="bg-white rounded-xl p-6 text-center transition-all duration-200" 
-          style={{ 
-            backgroundColor: '#f8fafc',
-            padding: '1.5rem',
-            borderRadius: '1rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            textAlign: 'center',
-            fontWeight: '600',
-            color: '#1e293b'
-          }}
+          className={`rounded-xl p-6 text-center transition-all duration-200 border ${
+            theme === 'dark'
+              ? 'bg-[#1a1f2c] border-emerald-400/20 shadow-lg shadow-emerald-600/10'
+              : 'bg-white border-gray-200 shadow-sm'
+          }`}
         >
           <h3 
-            className="text-gray-600 text-sm font-semibold mb-2" 
-            style={{ fontWeight: '600' }}
+            className={`text-sm font-semibold mb-2 ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
           >
             {card.title}
           </h3>
           <p 
-            className="font-bold text-gray-800" 
-            style={{ fontSize: '1.2rem', fontWeight: '600', color: '#1e293b' }}
+            className={`font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-800'
+            }`}
+            style={{ fontSize: '1.2rem' }}
           >
             {card.value}
           </p>

@@ -3,9 +3,11 @@ import NavBar from "../components/NavHome";
 import UploadLeft from "../components/com_uploading/UploadLeft";
 import UploadRight from "../components/com_uploading/UploadRight";
 import { useToast } from '../context/ToastContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Upload() {
   const toast = useToast();
+  const { theme } = useTheme();
   const [billDate, setBillDate] = useState("");
   const [shopName, setShopName] = useState("");
   const [rows, setRows] = useState([]);
@@ -181,10 +183,16 @@ export default function Upload() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c111c] text-white">
+    <div className={`min-h-screen ${
+      theme === 'dark' ? 'bg-[#0B1120] text-white' : 'bg-[#F8FAFC] text-gray-900'
+    }`}>
       <NavBar />
       <div className="flex flex-col justify-center items-center p-8">
-        <div className="flex bg-[#1a1f2c] rounded-2xl shadow-xl border border-emerald-400/20 w-full max-w-6xl min-h-[500px]">
+        <div className={`flex rounded-2xl w-full max-w-6xl min-h-[500px] border ${
+          theme === 'dark'
+            ? 'bg-[#1E293B] shadow-xl border-[#334155]'
+            : 'bg-white shadow-lg border-[#E2E8F0]'
+        }`}>
           <UploadLeft onProcess={handleOCRResults} />
           <UploadRight
             showDetails={true}   // ✅ Always true → show immediately
@@ -205,9 +213,19 @@ export default function Upload() {
 
         {/* Debug section */}
         {extractedText && (
-          <div className="mt-6 p-4 bg-[#1a1f2c] rounded-xl border border-emerald-400/20 w-full max-w-6xl">
-            <h3 className="text-emerald-400 font-semibold mb-2">Extracted Text (Debug):</h3>
-            <pre className="text-gray-300 text-sm bg-[#0c111c] p-3 rounded overflow-auto max-h-60">
+          <div className={`mt-6 p-4 rounded-xl w-full max-w-6xl border ${
+            theme === 'dark'
+              ? 'bg-[#1E293B] border-[#334155]'
+              : 'bg-white border-[#E2E8F0]'
+          }`}>
+            <h3 className={`font-semibold mb-2 ${
+              theme === 'dark' ? 'text-emerald-400' : 'text-[#059669]'
+            }`}>Extracted Text (Debug):</h3>
+            <pre className={`text-sm p-3 rounded overflow-auto max-h-60 ${
+              theme === 'dark'
+                ? 'bg-[#0F172A] text-gray-300'
+                : 'bg-gray-50 text-gray-700'
+            }`}>
               {extractedText}
             </pre>
           </div>
