@@ -1,9 +1,11 @@
 import React from 'react';
 import { HelpCircle, Mail, Phone, MessageCircle, Book, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function Help() {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
 
   const helpTopics = [
     {
@@ -32,11 +34,11 @@ export default function Help() {
     {
       icon: Mail,
       label: 'Email Support',
-      value: 'support@budgetbee.com',
-      link: 'mailto:support@budgetbee.com',
+      value: 'supportbudgetbee@gmail.com',
+      link: 'mailto:supportbudgetbee@gmail.com',
       color: 'text-blue-500'
-    },
-    {
+    }
+    /*{
       icon: Phone,
       label: 'Phone Support',
       value: '+1 (555) 123-4567',
@@ -49,7 +51,7 @@ export default function Help() {
       value: 'Available Mon-Fri 9AM-5PM',
       link: '#',
       color: 'text-purple-500'
-    }
+    }*/
   ];
 
   return (
@@ -177,19 +179,19 @@ export default function Help() {
 
       {/* Documentation Link */}
       <div className="mt-6 text-center">
-        <a
-          href="#"
-          className={`
-            inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors
-            ${isDark 
-              ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
-              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-            }
-          `}
+        <button
+          onClick={() => navigate('/documentation')}
+          className="
+            inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
+            bg-gradient-to-r from-emerald-500 to-emerald-600
+            hover:from-emerald-600 hover:to-emerald-700
+            text-white shadow-lg hover:shadow-xl
+            transform hover:scale-105 transition-all duration-200
+          "
         >
           View Full Documentation
           <ExternalLink className="h-4 w-4" />
-        </a>
+        </button>
       </div>
     </div>
   );

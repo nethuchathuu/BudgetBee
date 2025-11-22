@@ -5,6 +5,7 @@ const ocrRoutes = require('./routes/ocrRouter');
 const expensesRoutes = require('./routes/expensesRouter');
 const notificationRoutes = require('./routes/notificationRouter');
 const limitsRoutes = require('./routes/limitsRouter');
+const userRoutes = require('./routes/userRouter');
 const app = express();
 const server = require('http').createServer(app);
 const cors = require('cors');
@@ -20,6 +21,7 @@ app.use('/api/ocr', ocrRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/limits', limitsRoutes);
+app.use('/api/user', userRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

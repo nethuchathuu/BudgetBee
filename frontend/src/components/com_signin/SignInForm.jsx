@@ -24,6 +24,12 @@ export default function SignInForm() {
         localStorage.setItem("token", response.data.token);
       }
 
+      // Save user data
+      if (response.data.user) {
+        localStorage.setItem("user_id", response.data.user.id);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
       toast.show(response.data.message || "Login successful!", 'success');
       navigate("/home");
     } catch (error) {
