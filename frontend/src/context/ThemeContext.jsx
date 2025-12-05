@@ -22,8 +22,13 @@ export const ThemeProvider = ({ children }) => {
     const loadThemeFromDB = async () => {
       try {
         const userId = localStorage.getItem('user_id');
-        if (userId) {
-          const response = await fetch(`http://localhost:5000/api/user/theme/${userId}`);
+        const token = localStorage.getItem('token');
+        if (userId && token) {
+          const response = await fetch(`http://localhost:5000/api/user/theme/${userId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             if (data.theme) {

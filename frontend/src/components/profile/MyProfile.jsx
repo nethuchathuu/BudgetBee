@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Camera, Mail, User, Lock, Check, X } from 'lucide-react';
+import { ArrowLeft, Camera, Mail, User, Lock, Check, X, Moon, Sun, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
@@ -14,6 +14,8 @@ export default function MyProfile() {
   const [profileData, setProfileData] = useState({
     fullName: '',
     email: '',
+    theme: '',
+    createdAt: '',
     profilePicture: null
   });
 
@@ -59,21 +61,40 @@ export default function MyProfile() {
 
       if (response.data.success) {
         const userData = response.data.data;
+        // Load profile picture from localStorage
+        const savedPicture = localStorage.getItem(`budgetbee-profile-pic-${userId}`);
+        
         setProfileData({
           fullName: userData.fullname || '',
           email: userData.email || '',
-          profilePicture: userData.profile_picture || null
+          theme: userData.theme || 'light',
+          createdAt: userData.created_at || '',
+          profilePicture: savedPicture || null
         });
+        
+        if (savedPicture) {
+          setProfilePreview(savedPicture);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       // Fallback to localStorage
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = localStorage.getItem('user_id');
+      const savedPicture = localStorage.getItem(`budgetbee-profile-pic-${userId}`);
+      const savedTheme = localStorage.getItem('budgetbee-theme');
+      
       setProfileData({
         fullName: user.fullname || '',
         email: user.email || '',
-        profilePicture: null
+        theme: savedTheme || 'light',
+        createdAt: new Date().toISOString(),
+        profilePicture: savedPicture || null
       });
+      
+      if (savedPicture) {
+        setProfilePreview(savedPicture);
+      }
     }
   };
 
@@ -87,8 +108,14 @@ export default function MyProfile() {
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePreview(reader.result);
-        setProfileData({ ...profileData, profilePicture: file });
+        const imageData = reader.result;
+        setProfilePreview(imageData);
+        setProfileData({ ...profileData, profilePicture: imageData });
+        
+        // Save to localStorage immediately
+        const userId = localStorage.getItem('user_id');
+        localStorage.setItem(`budgetbee-profile-pic-${userId}`, imageData);
+        toast.show('Profile picture updated!', 'success');
       };
       reader.readAsDataURL(file);
     }
@@ -100,20 +127,16 @@ export default function MyProfile() {
       const userId = localStorage.getItem('user_id');
       const token = localStorage.getItem('token');
 
-      const formData = new FormData();
-      formData.append('fullName', profileData.fullName);
-      
-      if (profileData.profilePicture instanceof File) {
-        formData.append('profilePicture', profileData.profilePicture);
-      }
-
       const response = await axios.put(
-        `http://localhost:5000/api/user/profile/${userId}`,
-        formData,
+        `http://localhost:5000/api/user/updateName`,
+        {
+          userId: userId,
+          fullName: profileData.fullName
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -176,8 +199,8 @@ export default function MyProfile() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/change-password',
+      const response = await axios.put(
+        'http://localhost:5000/api/user/updatePassword',
         {
           email: profileData.email,
           verificationCode: passwordData.verificationCode,
@@ -198,6 +221,12 @@ export default function MyProfile() {
       console.error('Error changing password:', error);
       toast.show(error.response?.data?.message || 'Failed to change password', 'error');
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   return (
@@ -311,6 +340,49 @@ export default function MyProfile() {
               <p className={`mt-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                 Email cannot be edited for security reasons
               </p>
+            </div>
+
+            {/* Theme */}
+            <div>
+              <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${
+                isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                Current Theme
+              </label>
+              <input
+                type="text"
+                value={profileData.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                disabled
+                className={`w-full px-4 py-3 rounded-lg border-2 outline-none cursor-not-allowed opacity-70 ${
+                  isDark 
+                    ? 'bg-[#0c111c] text-gray-400 border-gray-700' 
+                    : 'bg-gray-100 text-gray-600 border-gray-300'
+                }`}
+              />
+              <p className={`mt-1 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                Change theme in Settings → Appearance
+              </p>
+            </div>
+
+            {/* Account Created Date */}
+            <div>
+              <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${
+                isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                <Calendar className="w-4 h-4" />
+                Account Created
+              </label>
+              <input
+                type="text"
+                value={formatDate(profileData.createdAt)}
+                disabled
+                className={`w-full px-4 py-3 rounded-lg border-2 outline-none cursor-not-allowed opacity-70 ${
+                  isDark 
+                    ? 'bg-[#0c111c] text-gray-400 border-gray-700' 
+                    : 'bg-gray-100 text-gray-600 border-gray-300'
+                }`}
+              />
             </div>
           </div>
 
