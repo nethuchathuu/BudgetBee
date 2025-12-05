@@ -17,6 +17,7 @@ import Reset from "./components/setting/Reset";
 import Notification from "./components/notification/Notification";
 import Documentation from "./components/documentation/Documentation";
 import MyProfile from "./components/profile/MyProfile";
+import ChangePassword from "./components/profile/changePW";
 import './index.css';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -36,6 +37,7 @@ function App() {
             <Route path="/notification" element={<Notification />} />
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/profile" element={<MyProfile />} />
+            <Route path="/profile/change-password" element={<ChangePassword />} />
             <Route path="/daily-summary" element={<DailySum />} />
             <Route path="/weekly-summary" element={<WeeklySum />} />
             <Route path="/monthly-summary" element={<MonthlySum />} />

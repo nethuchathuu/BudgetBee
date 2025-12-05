@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
 
 export default function MyProfile() {
-  const { isDark } = useTheme();
+  const { isDark, theme } = useTheme();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -23,16 +23,6 @@ export default function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profilePreview, setProfilePreview] = useState(null);
-
-  // Password change states
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    verificationCode: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [codeSent, setCodeSent] = useState(false);
-  const [sendingCode, setSendingCode] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -155,74 +145,6 @@ export default function MyProfile() {
     }
   };
 
-  const handleSendVerificationCode = async () => {
-    try {
-      setSendingCode(true);
-      const token = localStorage.getItem('token');
-
-      const response = await axios.post(
-        'http://localhost:5000/api/auth/send-verification-code',
-        { email: profileData.email },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.data.success) {
-        toast.show('Verification code sent to your email!', 'success');
-        setCodeSent(true);
-      }
-    } catch (error) {
-      console.error('Error sending verification code:', error);
-      toast.show('Failed to send verification code', 'error');
-    } finally {
-      setSendingCode(false);
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (!passwordData.verificationCode) {
-      toast.show('Please enter verification code', 'error');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast.show('Password must be at least 8 characters', 'error');
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.show('Passwords do not match', 'error');
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-
-      const response = await axios.put(
-        'http://localhost:5000/api/user/updatePassword',
-        {
-          email: profileData.email,
-          verificationCode: passwordData.verificationCode,
-          newPassword: passwordData.newPassword
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.data.success) {
-        toast.show('Password changed successfully!', 'success');
-        setShowPasswordChange(false);
-        setCodeSent(false);
-        setPasswordData({ verificationCode: '', newPassword: '', confirmPassword: '' });
-      }
-    } catch (error) {
-      console.error('Error changing password:', error);
-      toast.show(error.response?.data?.message || 'Failed to change password', 'error');
-    }
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -235,7 +157,7 @@ export default function MyProfile() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/home', { replace: true })}
             className={`p-2 rounded-lg transition-colors ${
               isDark 
                 ? 'hover:bg-gray-800 text-emerald-400' 
@@ -347,12 +269,12 @@ export default function MyProfile() {
               <label className={`flex items-center gap-2 text-sm font-medium mb-2 ${
                 isDark ? 'text-gray-300' : 'text-gray-700'
               }`}>
-                {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 Current Theme
               </label>
               <input
                 type="text"
-                value={profileData.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                value={theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
                 disabled
                 className={`w-full px-4 py-3 rounded-lg border-2 outline-none cursor-not-allowed opacity-70 ${
                   isDark 
@@ -397,7 +319,7 @@ export default function MyProfile() {
                   Edit Profile
                 </button>
                 <button
-                  onClick={() => setShowPasswordChange(true)}
+                  onClick={() => navigate('/profile/change-password')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
                     isDark 
                       ? 'bg-gray-700 hover:bg-gray-600 text-white' 
@@ -439,149 +361,6 @@ export default function MyProfile() {
           </div>
         </div>
       </div>
-
-      {/* Password Change Modal */}
-      {showPasswordChange && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className={`w-full max-w-md rounded-2xl shadow-2xl ${
-            isDark ? 'bg-[#1a1f2c]' : 'bg-white'
-          }`}>
-            {/* Modal Header */}
-            <div className={`flex items-center justify-between p-6 border-b ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
-            }`}>
-              <h2 className={`text-2xl font-bold flex items-center gap-2 ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
-                <Lock className="w-6 h-6 text-emerald-400" />
-                Change Password
-              </h2>
-              <button
-                onClick={() => {
-                  setShowPasswordChange(false);
-                  setCodeSent(false);
-                  setPasswordData({ verificationCode: '', newPassword: '', confirmPassword: '' });
-                }}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
-                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-4">
-              {/* Info Box */}
-              <div className={`p-4 rounded-lg border-l-4 ${
-                isDark 
-                  ? 'bg-blue-900/20 border-blue-400 text-blue-300' 
-                  : 'bg-blue-50 border-blue-500 text-blue-700'
-              }`}>
-                <p className="text-sm">
-                  We'll send a verification code to <strong>{profileData.email}</strong> to confirm your identity.
-                </p>
-              </div>
-
-              {/* Send Code Button */}
-              {!codeSent ? (
-                <button
-                  onClick={handleSendVerificationCode}
-                  disabled={sendingCode}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {sendingCode ? 'Sending...' : 'Send Verification Code'}
-                </button>
-              ) : (
-                <>
-                  {/* Verification Code */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Verification Code
-                    </label>
-                    <input
-                      type="text"
-                      value={passwordData.verificationCode}
-                      onChange={(e) => setPasswordData({ ...passwordData, verificationCode: e.target.value })}
-                      placeholder="Enter 6-digit code"
-                      className={`w-full px-4 py-3 rounded-lg border-2 outline-none ${
-                        isDark 
-                          ? 'bg-[#0c111c] text-white border-gray-700 focus:border-emerald-400' 
-                          : 'bg-white text-gray-800 border-gray-300 focus:border-emerald-500'
-                      }`}
-                    />
-                  </div>
-
-                  {/* New Password */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      placeholder="Minimum 8 characters"
-                      className={`w-full px-4 py-3 rounded-lg border-2 outline-none ${
-                        isDark 
-                          ? 'bg-[#0c111c] text-white border-gray-700 focus:border-emerald-400' 
-                          : 'bg-white text-gray-800 border-gray-300 focus:border-emerald-500'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Confirm Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      placeholder="Re-enter new password"
-                      className={`w-full px-4 py-3 rounded-lg border-2 outline-none ${
-                        isDark 
-                          ? 'bg-[#0c111c] text-white border-gray-700 focus:border-emerald-400' 
-                          : 'bg-white text-gray-800 border-gray-300 focus:border-emerald-500'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      onClick={handleChangePassword}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
-                    >
-                      Change Password
-                    </button>
-                    <button
-                      onClick={() => handleSendVerificationCode()}
-                      disabled={sendingCode}
-                      className={`px-4 py-3 rounded-lg font-semibold transition-colors ${
-                        isDark 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                          : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                      } disabled:opacity-50`}
-                    >
-                      Resend
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const { pool } = require('../../config/db');
+const { sendVerificationEmail } = require('../../utils/emailService');
 
 // Environment variable for JWT secret
 const JWT_SECRET = process.env.JWT_SECRET ;
@@ -107,7 +108,153 @@ const signin = async (req, res) => {
   }
 };
 
+// Store verification codes temporarily (in production, use Redis or database)
+const verificationCodes = new Map();
+
+// Send verification code
+const sendVerificationCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store code with expiration (5 minutes)
+    verificationCodes.set(email, {
+      code,
+      expires: Date.now() + 5 * 60 * 1000
+    });
+
+    // Send email with verification code
+    try {
+      await sendVerificationEmail(email, code);
+      console.log(`✅ Verification code sent to ${email}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send email:', emailError.message);
+      
+      // For development: Still allow testing even if email fails
+      console.log(`\n⚠️  EMAIL NOT CONFIGURED - Testing Mode`);
+      console.log(`📧 Verification code for ${email}: ${code}`);
+      console.log(`⏰ Expires in 5 minutes\n`);
+      
+      // Comment out this return to allow testing without email
+      // return res.status(500).json({ 
+      //   success: false, 
+      //   message: 'Failed to send verification email. Please check your email configuration.' 
+      // });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email'
+    });
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    res.status(500).json({ success: false, message: 'Failed to send verification code' });
+  }
+};
+
+// Change password with verification
+const changePassword = async (req, res) => {
+  try {
+    const { email, oldPassword, newPassword, confirmNewPassword, verificationCode } = req.body;
+
+    // Validation
+    if (!email || !oldPassword || !newPassword || !confirmNewPassword || !verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New passwords do not match.'
+      });
+    }
+
+    // Verify code
+    const storedData = verificationCodes.get(email);
+    if (!storedData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code is incorrect.'
+      });
+    }
+
+    if (Date.now() > storedData.expires) {
+      verificationCodes.delete(email);
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code has expired'
+      });
+    }
+
+    if (storedData.code !== verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code is incorrect.'
+      });
+    }
+
+    // Get user and verify old password
+    const [users] = await pool.execute('SELECT id, password FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = users[0];
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your old password is incorrect.'
+      });
+    }
+
+    // Hash new password and update
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.execute(
+      'UPDATE users SET password = ? WHERE id = ?',
+      [hashedPassword, user.id]
+    );
+
+    // Clear verification code
+    verificationCodes.delete(email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong, try again.'
+    });
+  }
+};
+
 module.exports = {
   signupHandler: signup,
   signinHandler: signin,
+  sendVerificationCode,
+  changePassword
 };
