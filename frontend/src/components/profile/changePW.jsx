@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
+import NavProfile from '../NavProfile';
 
 export default function ChangePassword() {
   const { isDark } = useTheme();
@@ -121,10 +122,12 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center backdrop-blur-xl bg-black/30 py-8 px-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+    <>
+      <NavProfile />
+      <div className="min-h-screen pt-20 w-full flex items-center justify-center backdrop-blur-xl bg-black/30 py-8 px-4">
+        <div className="max-w-md w-full">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/profile', { replace: true })}
             className={`p-2 rounded-lg transition-colors ${
@@ -309,5 +312,6 @@ export default function ChangePassword() {
         </form>
       </div>
     </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
+import NavProfile from '../NavProfile';
 
 export default function MyProfile() {
   const { isDark, theme } = useTheme();
@@ -152,10 +153,12 @@ export default function MyProfile() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-100'} py-8 px-4`}>
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+    <>
+      <NavProfile />
+      <div className={`min-h-screen pt-20 ${isDark ? 'bg-[#0c111c]' : 'bg-gray-100'} py-8 px-4`}>
+        <div className="max-w-md mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/home', { replace: true })}
             className={`p-2 rounded-lg transition-colors ${
@@ -362,5 +365,6 @@ export default function MyProfile() {
         </div>
       </div>
     </div>
+    </>
   );
 }

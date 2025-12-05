@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { Palette, Home, Bell, HelpCircle, RotateCcw, ChevronRight, Menu, X } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import NavHome from '../NavHome';
+import NavProfile from '../NavProfile';
 
 const settingsMenu = [
   {
@@ -58,9 +58,9 @@ export default function Setting() {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
-      <NavHome />
+      <NavProfile />
       
-      <div className="h-[calc(100vh-64px)] flex">
+      <div className="pt-16 h-[calc(100vh-64px)] flex">
         {/* Mobile Menu Toggle Button */}
         {showSidebar && (
           <button
@@ -91,7 +91,7 @@ export default function Setting() {
               className={`
                 ${isDark ? 'bg-[#1a1f2c]' : 'bg-white'} 
                 w-64 h-full overflow-y-auto shadow-xl
-                fixed lg:sticky top-[64px] left-0 z-40
+                fixed lg:sticky top-16 left-0 z-40
                 transition-transform duration-300 ease-in-out
                 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
               `}

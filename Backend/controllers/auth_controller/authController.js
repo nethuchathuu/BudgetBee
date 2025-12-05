@@ -252,9 +252,142 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Send password reset code
+const sendResetCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    // Check if email exists in database
+    const [users] = await pool.execute('SELECT id, email FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email address'
+      });
+    }
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store code with expiration (10 minutes for password reset)
+    verificationCodes.set(email, {
+      code,
+      expires: Date.now() + 10 * 60 * 1000,
+      type: 'reset'
+    });
+
+    // Send email with verification code
+    try {
+      await sendVerificationEmail(email, code);
+      console.log(`✅ Password reset code sent to ${email}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send email:', emailError.message);
+      
+      // For development: Still allow testing even if email fails
+      console.log(`\n⚠️  EMAIL NOT CONFIGURED - Testing Mode`);
+      console.log(`📧 Password reset code for ${email}: ${code}`);
+      console.log(`⏰ Expires in 10 minutes\n`);
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email'
+    });
+  } catch (error) {
+    console.error('Error sending reset code:', error);
+    res.status(500).json({ success: false, message: 'Failed to send verification code' });
+  }
+};
+
+// Reset password with verification code
+const resetPassword = async (req, res) => {
+  try {
+    const { email, verificationCode, newPassword } = req.body;
+
+    // Validation
+    if (!email || !verificationCode || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters'
+      });
+    }
+
+    // Verify code
+    const storedData = verificationCodes.get(email);
+    if (!storedData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code is incorrect or has expired'
+      });
+    }
+
+    if (Date.now() > storedData.expires) {
+      verificationCodes.delete(email);
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code has expired. Please request a new one.'
+      });
+    }
+
+    if (storedData.code !== verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code is incorrect'
+      });
+    }
+
+    // Check if email exists
+    const [users] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = users[0];
+
+    // Hash new password and update
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.execute(
+      'UPDATE users SET password = ? WHERE id = ?',
+      [hashedPassword, user.id]
+    );
+
+    // Clear verification code
+    verificationCodes.delete(email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset password. Please try again.'
+    });
+  }
+};
+
 module.exports = {
   signupHandler: signup,
   signinHandler: signin,
   sendVerificationCode,
-  changePassword
+  changePassword,
+  sendResetCode,
+  resetPassword
 };

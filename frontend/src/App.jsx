@@ -18,6 +18,7 @@ import Notification from "./components/notification/Notification";
 import Documentation from "./components/documentation/Documentation";
 import MyProfile from "./components/profile/MyProfile";
 import ChangePassword from "./components/profile/changePW";
+import ForgotPassword from "./components/com_signin/forgotPW";
 import './index.css';
 import { ToastProvider } from './context/ToastContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/notification" element={<Notification />} />

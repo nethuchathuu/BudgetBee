@@ -64,9 +64,19 @@ export default function SignInForm() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full p-3 mb-2 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           required
         />
+
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm text-emerald-400 hover:text-emerald-300 hover:underline"
+          >
+            Forgot Password?
+          </button>
+        </div>
 
         <button
           type="submit"

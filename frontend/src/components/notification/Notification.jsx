@@ -3,6 +3,7 @@ import { Bell, Trash2, Check, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
+import NavProfile from '../NavProfile';
 
 const Notification = () => {
   const { theme, isDark } = useTheme();
@@ -130,17 +131,22 @@ const Notification = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading notifications...</p>
+      <>
+        <NavProfile />
+        <div className={`min-h-screen pt-20 flex items-center justify-center ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+            <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading notifications...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'} py-8 px-4`}>
+    <>
+      <NavProfile />
+      <div className={`min-h-screen pt-20 ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'} py-8 px-4`}>
       <div className="max-w-3xl mx-auto">
         {/* Back Button */}
         <button
@@ -290,6 +296,7 @@ const Notification = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
