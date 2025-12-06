@@ -53,8 +53,11 @@ const MonthlySum = () => {
       
       console.log('📦 Received monthly expense data:', data);
       
-      // Backend now returns array: [{ category_name, category_total, products: [...] }]
+      // Backend now returns array: [{ category_name, category_total, products: [...], __metadata: {...} }]
       if (Array.isArray(data) && data.length > 0) {
+        // Extract metadata from first item (all items have same metadata)
+        const metadata = data[0]?.__metadata || {};
+        
         // Transform to format expected by BarChart/PieChart: [{ category, amount, color }]
         const transformedData = data.map((cat, index) => ({
           category: cat.category_name,
@@ -79,8 +82,14 @@ const MonthlySum = () => {
           totalSpent,
           dailyAverage,
           weeklyAverage,
-          highestWeek: { week: null, total: 0 },
-          highestDate: { date: null, total: 0 },
+          highestWeek: { 
+            week: metadata.highestWeek || null, 
+            total: metadata.highestWeekAmount || 0 
+          },
+          highestDate: { 
+            date: metadata.highestDate || null, 
+            total: metadata.highestDateAmount || 0 
+          },
           topCategory: topCat.category_name,
           topAmount: topCat.category_total
         });

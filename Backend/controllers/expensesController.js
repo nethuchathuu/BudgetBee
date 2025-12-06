@@ -255,7 +255,8 @@ const expensesController = {
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date
         FROM expenses
         WHERE YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1)
           AND user_id = ?
@@ -267,13 +268,17 @@ const expensesController = {
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -289,6 +294,22 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
       });
 
       // Convert to array and aggregate products
@@ -301,7 +322,16 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching weekly summary:', error);
       res.status(500).json({
@@ -321,7 +351,8 @@ const expensesController = {
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date
         FROM expenses
         WHERE YEARWEEK(created_at,1) = ?
           AND user_id = ?
@@ -333,13 +364,17 @@ const expensesController = {
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -355,6 +390,22 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
       });
 
       // Convert to array and aggregate products
@@ -367,7 +418,16 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching selected week summary:', error);
       res.status(500).json({
@@ -381,32 +441,42 @@ const expensesController = {
   getMonthlySummary: async (req, res) => {
     try {
       const { user_id } = req.params;
+      const year = new Date().getFullYear();
+      const month = new Date().getMonth() + 1;
 
       // Get all expenses for the current month
       const expensesQuery = `
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date,
+          WEEK(created_at,1) as week_number
         FROM expenses
-        WHERE MONTH(created_at) = MONTH(CURDATE())
-          AND YEAR(created_at) = YEAR(CURDATE())
+        WHERE MONTH(created_at) = ?
+          AND YEAR(created_at) = ?
           AND user_id = ?
         ORDER BY category_name, product_name
       `;
 
-      const [expenseRows] = await db.execute(expensesQuery, [user_id]);
+      const [expenseRows] = await db.execute(expensesQuery, [month, year, user_id]);
 
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
+      const weekMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        const weekNumber = row.week_number;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -422,6 +492,40 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+
+        // Week aggregation for highest expense week
+        if (weekNumber && !weekMap[weekNumber]) {
+          weekMap[weekNumber] = 0;
+        }
+        if (weekNumber) {
+          weekMap[weekNumber] += price;
+        }
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
+      });
+
+      // Find highest expense week
+      let highestWeek = null;
+      let highestWeekAmount = 0;
+      Object.entries(weekMap).forEach(([week, amount]) => {
+        if (amount > highestWeekAmount) {
+          highestWeekAmount = amount;
+          highestWeek = parseInt(week);
+        }
       });
 
       // Convert to array and aggregate products
@@ -434,7 +538,18 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestWeek: highestWeek,
+          highestWeekAmount: highestWeekAmount,
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching monthly summary:', error);
       res.status(500).json({
@@ -454,7 +569,9 @@ const expensesController = {
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date,
+          WEEK(created_at,1) as week_number
         FROM expenses
         WHERE YEAR(created_at) = ?
           AND MONTH(created_at) = ?
@@ -467,13 +584,19 @@ const expensesController = {
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
+      const weekMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        const weekNumber = row.week_number;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -489,6 +612,40 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+
+        // Week aggregation for highest expense week
+        if (weekNumber && !weekMap[weekNumber]) {
+          weekMap[weekNumber] = 0;
+        }
+        if (weekNumber) {
+          weekMap[weekNumber] += price;
+        }
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
+      });
+
+      // Find highest expense week
+      let highestWeek = null;
+      let highestWeekAmount = 0;
+      Object.entries(weekMap).forEach(([week, amount]) => {
+        if (amount > highestWeekAmount) {
+          highestWeekAmount = amount;
+          highestWeek = parseInt(week);
+        }
       });
 
       // Convert to array and aggregate products
@@ -501,7 +658,18 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestWeek: highestWeek,
+          highestWeekAmount: highestWeekAmount,
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching selected month summary:', error);
       res.status(500).json({
@@ -515,31 +683,43 @@ const expensesController = {
   getYearlySummary: async (req, res) => {
     try {
       const { user_id } = req.params;
+      const year = new Date().getFullYear();
 
       // Get all expenses for the current year
       const expensesQuery = `
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date,
+          MONTH(created_at) as month_number,
+          WEEK(created_at,1) as week_number
         FROM expenses
-        WHERE YEAR(created_at) = YEAR(CURDATE())
+        WHERE YEAR(created_at) = ?
           AND user_id = ?
         ORDER BY category_name, product_name
       `;
 
-      const [expenseRows] = await db.execute(expensesQuery, [user_id]);
+      const [expenseRows] = await db.execute(expensesQuery, [year, user_id]);
 
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
+      const weekMap = {};
+      const monthMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        const weekNumber = row.week_number;
+        const monthNumber = row.month_number;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -555,6 +735,58 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+
+        // Week aggregation for highest expense week
+        if (weekNumber && !weekMap[weekNumber]) {
+          weekMap[weekNumber] = 0;
+        }
+        if (weekNumber) {
+          weekMap[weekNumber] += price;
+        }
+
+        // Month aggregation for highest expense month
+        if (monthNumber && !monthMap[monthNumber]) {
+          monthMap[monthNumber] = 0;
+        }
+        if (monthNumber) {
+          monthMap[monthNumber] += price;
+        }
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
+      });
+
+      // Find highest expense week
+      let highestWeek = null;
+      let highestWeekAmount = 0;
+      Object.entries(weekMap).forEach(([week, amount]) => {
+        if (amount > highestWeekAmount) {
+          highestWeekAmount = amount;
+          highestWeek = week;
+        }
+      });
+
+      // Find highest expense month
+      let highestMonth = null;
+      let highestMonthAmount = 0;
+      Object.entries(monthMap).forEach(([month, amount]) => {
+        if (amount > highestMonthAmount) {
+          highestMonthAmount = amount;
+          highestMonth = month;
+        }
       });
 
       // Convert to array and aggregate products
@@ -567,7 +799,20 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestMonth: highestMonth,
+          highestMonthAmount: highestMonthAmount,
+          highestWeek: parseInt(highestWeek),
+          highestWeekAmount: highestWeekAmount,
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching yearly summary:', error);
       res.status(500).json({
@@ -587,7 +832,10 @@ const expensesController = {
         SELECT 
           category_name,
           product_name,
-          price
+          price,
+          DATE(created_at) as expense_date,
+          MONTH(created_at) as month_number,
+          WEEK(created_at,1) as week_number
         FROM expenses
         WHERE YEAR(created_at) = ?
           AND user_id = ?
@@ -599,13 +847,21 @@ const expensesController = {
       // Group by category with products
       const categoryMap = {};
       let totalSpent = 0;
+      const dateMap = {};
+      const weekMap = {};
+      const monthMap = {};
 
       expenseRows.forEach(row => {
         const category = row.category_name;
         const productName = row.product_name;
         const price = Number(row.price) || 0;
+        const expenseDate = row.expense_date;
+        const weekNumber = row.week_number;
+        const monthNumber = row.month_number;
+        
         totalSpent += price;
 
+        // Category aggregation
         if (!categoryMap[category]) {
           categoryMap[category] = {
             category_name: category,
@@ -621,6 +877,58 @@ const expensesController = {
           categoryMap[category].productMap[productName] = 0;
         }
         categoryMap[category].productMap[productName] += price;
+
+        // Date aggregation for highest expense date
+        if (!dateMap[expenseDate]) {
+          dateMap[expenseDate] = 0;
+        }
+        dateMap[expenseDate] += price;
+
+        // Week aggregation for highest expense week
+        if (weekNumber && !weekMap[weekNumber]) {
+          weekMap[weekNumber] = 0;
+        }
+        if (weekNumber) {
+          weekMap[weekNumber] += price;
+        }
+
+        // Month aggregation for highest expense month
+        if (monthNumber && !monthMap[monthNumber]) {
+          monthMap[monthNumber] = 0;
+        }
+        if (monthNumber) {
+          monthMap[monthNumber] += price;
+        }
+      });
+
+      // Find highest expense date
+      let highestDate = null;
+      let highestDateAmount = 0;
+      Object.entries(dateMap).forEach(([date, amount]) => {
+        if (amount > highestDateAmount) {
+          highestDateAmount = amount;
+          highestDate = date;
+        }
+      });
+
+      // Find highest expense week
+      let highestWeek = null;
+      let highestWeekAmount = 0;
+      Object.entries(weekMap).forEach(([week, amount]) => {
+        if (amount > highestWeekAmount) {
+          highestWeekAmount = amount;
+          highestWeek = week;
+        }
+      });
+
+      // Find highest expense month
+      let highestMonth = null;
+      let highestMonthAmount = 0;
+      Object.entries(monthMap).forEach(([month, amount]) => {
+        if (amount > highestMonthAmount) {
+          highestMonthAmount = amount;
+          highestMonth = month;
+        }
       });
 
       // Convert to array and aggregate products
@@ -633,7 +941,20 @@ const expensesController = {
         }))
       })).sort((a, b) => b.category_total - a.category_total);
 
-      res.status(200).json(categories);
+      // Return categories array with metadata
+      const response = categories.map(cat => ({
+        ...cat,
+        __metadata: {
+          highestMonth: highestMonth,
+          highestMonthAmount: highestMonthAmount,
+          highestWeek: parseInt(highestWeek),
+          highestWeekAmount: highestWeekAmount,
+          highestDate: highestDate,
+          highestDateAmount: highestDateAmount
+        }
+      }));
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching selected year summary:', error);
       res.status(500).json({

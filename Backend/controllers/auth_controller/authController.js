@@ -383,11 +383,72 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Google Auth function
+const googleAuth = async (req, res) => {
+  try {
+    const { name, email, photo } = req.body;
+
+    // Check if user exists
+    const [users] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
+
+    if (users.length > 0) {
+      // User exists, log them in
+      const user = users[0];
+      const token = jwt.sign(
+        { id: user.id, fullname: user.fullname, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+
+      return res.status(200).json({
+        message: 'Login successful',
+        token,
+        user: userWithoutPassword
+      });
+    } else {
+      // User does not exist, create new user
+      // Generate a random password
+      const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+      const [result] = await pool.execute(
+        'INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)',
+        [name, email, hashedPassword]
+      );
+
+      const newUser = {
+        id: result.insertId,
+        fullname: name,
+        email: email
+      };
+
+      const token = jwt.sign(
+        { id: newUser.id, fullname: newUser.fullname, email: newUser.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.status(201).json({
+        message: 'User registered successfully',
+        token,
+        user: newUser
+      });
+    }
+  } catch (error) {
+    console.error('Google Auth error:', error);
+    res.status(500).json({ error: 'Server error during Google authentication' });
+  }
+};
+
 module.exports = {
   signupHandler: signup,
   signinHandler: signin,
   sendVerificationCode,
   changePassword,
   sendResetCode,
-  resetPassword
+  resetPassword,
+  googleAuth
 };

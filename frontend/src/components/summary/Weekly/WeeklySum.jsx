@@ -49,10 +49,13 @@ const WeeklySum = () => {
       // Get userId from localStorage (same pattern as daily summary)
       const userId = localStorage.getItem('user_id') || 1;
       
-      // Get data from API - now returns array: [{ category_name, category_total, products: [...] }]
+      // Get data from API - now returns array: [{ category_name, category_total, products: [...], __metadata }]
       const data = await dataService.getWeeklyExpenses(currentWeek, userId);
       
       if (Array.isArray(data) && data.length > 0) {
+        // Extract metadata from first item (all items have same metadata)
+        const metadata = data[0]?.__metadata || {};
+        
         // Transform to format expected by components: [{ category, amount, color }]
         const transformedData = data.map((cat, index) => ({
           category: cat.category_name,
@@ -74,8 +77,8 @@ const WeeklySum = () => {
         setSummaryData({
           totalSpent,
           dailyAverage,
-          highestDay: null,
-          highestDayAmount: 0,
+          highestDay: metadata.highestDate || null,
+          highestDayAmount: metadata.highestDateAmount || 0,
           topCategory: topCat.category_name,
           topAmount: topCat.category_total
         });

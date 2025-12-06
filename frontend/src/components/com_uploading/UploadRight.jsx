@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { useTheme } from '../../context/ThemeContext';
 
 // Standardized categories matching the backend categorization system
@@ -42,6 +42,7 @@ export default function UploadRight({
   setShopName,
   rows,
   handleRowChange,
+  handleDeleteRow,
   addRow,
   getTotal,
   onSave,
@@ -124,6 +125,11 @@ export default function UploadRight({
                         ? 'border-[#334155] text-[#F8FAFC]'
                         : 'border-[#E2E8F0] text-[#0F172A]'
                     }`}>Price</th>
+                    <th className={`border-b px-3 py-2 text-center ${
+                      theme === 'dark'
+                        ? 'border-[#334155] text-[#F8FAFC]'
+                        : 'border-[#E2E8F0] text-[#0F172A]'
+                    }`}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -174,6 +180,17 @@ export default function UploadRight({
                             theme === 'dark' ? 'bg-transparent text-white placeholder-gray-500' : 'bg-transparent text-[#0F172A] placeholder-gray-400'
                           }`}
                         />
+                      </td>
+                      <td className={`border-b px-3 py-2 text-center ${
+                        theme === 'dark' ? 'border-[#334155]' : 'border-[#E2E8F0]'
+                      }`}>
+                        <button
+                          onClick={() => handleDeleteRow(i)}
+                          className="text-red-600 hover:text-red-800 transition-colors"
+                          title="Delete row"
+                        >
+                          <Trash size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}

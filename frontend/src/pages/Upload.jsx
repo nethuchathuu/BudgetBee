@@ -4,6 +4,7 @@ import UploadLeft from "../components/com_uploading/UploadLeft";
 import UploadRight from "../components/com_uploading/UploadRight";
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
+import { Trash } from 'lucide-react';
 
 export default function Upload() {
   const toast = useToast();
@@ -11,6 +12,7 @@ export default function Upload() {
   const [billDate, setBillDate] = useState("");
   const [shopName, setShopName] = useState("");
   const [rows, setRows] = useState([]);
+  const [processedRows, setProcessedRows] = useState([]);
   const [extractedText, setExtractedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -32,6 +34,12 @@ export default function Upload() {
     setRows(updated);
     // Clear save message when user starts editing
     if (saveMessage) setSaveMessage("");
+  };
+
+  // Delete row
+  const handleDeleteRow = (index) => {
+    const updated = rows.filter((_, i) => i !== index);
+    setRows(updated.length > 0 ? updated : [{ category: "", product: "", price: "" }]);
   };
 
   // Calculate total
@@ -202,6 +210,7 @@ export default function Upload() {
             setShopName={setShopName}
             rows={rows}
             handleRowChange={handleRowChange}
+            handleDeleteRow={handleDeleteRow}
             addRow={addRow}
             getTotal={getTotal}
             onSave={handleSave}

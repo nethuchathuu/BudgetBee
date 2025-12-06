@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import google from "../../assets/google_log.png";
 import { useToast } from '../../context/ToastContext';
+import GoogleAuth from "../GoogleAuth";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -94,10 +94,7 @@ export default function SignInForm() {
       </div>
 
       {/* Google Sign-In */}
-      <button className="w-full bg-white text-gray-900 py-3 rounded-lg shadow-md flex items-center justify-center gap-2 hover:bg-gray-100 transition">
-        <img src={google} alt="Google" className="w-5 h-5" />
-        Sign in with Google
-      </button>
+      <GoogleAuth text="Sign in with Google" />
 
       <p className="text-gray-400 mt-6 text-center">
         Don’t have an account?{" "}

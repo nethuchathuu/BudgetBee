@@ -47,8 +47,11 @@ const YearlySum = () => {
         data = await dataService.getYearlyExpensesByYear(userId, year);
       }
       
-      // Backend now returns array: [{ category_name, category_total, products: [...] }]
+      // Backend now returns array: [{ category_name, category_total, products: [...], __metadata }]
       if (Array.isArray(data) && data.length > 0) {
+        // Extract metadata from first item (all items have same metadata)
+        const metadata = data[0]?.__metadata || {};
+        
         // Calculate summary metrics
         const totalSpent = data.reduce((sum, cat) => sum + (Number(cat.category_total) || 0), 0);
         const monthlyAverage = totalSpent / 12;
@@ -72,9 +75,9 @@ const YearlySum = () => {
           monthlyAverage,
           weeklyAverage,
           dailyAverage,
-          highestMonth: { month: null, total: 0 },
-          highestWeek: { week: null, total: 0 },
-          highestDate: { date: null, total: 0 },
+          highestMonth: { month: metadata.highestMonth || null, total: metadata.highestMonthAmount || 0 },
+          highestWeek: { week: metadata.highestWeek || null, total: metadata.highestWeekAmount || 0 },
+          highestDate: { date: metadata.highestDate || null, total: metadata.highestDateAmount || 0 },
           topCategory: topCat.category_name,
           topAmount: topCat.category_total,
           categoryBreakdown,
