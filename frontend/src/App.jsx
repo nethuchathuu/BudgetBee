@@ -19,6 +19,7 @@ import Documentation from "./components/documentation/Documentation";
 import MyProfile from "./components/profile/MyProfile";
 import ChangePassword from "./components/profile/changePW";
 import ForgotPassword from "./components/com_signin/forgotPW";
+import VerifyEmail from "./pages/VerifyEmail";
 import DiaryBook from "./components/diary/DiaryBook";
 import './index.css';
 import { ToastProvider } from './context/ToastContext';
@@ -34,6 +35,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/upload" element={<Upload />} />

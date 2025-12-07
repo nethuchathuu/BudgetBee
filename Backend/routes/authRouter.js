@@ -1,5 +1,5 @@
 const express = require('express');
-const { signupHandler, signinHandler, sendVerificationCode, changePassword, sendResetCode, resetPassword, googleAuth } = require('../controllers/auth_controller/authController');
+const { signupHandler, signinHandler, sendVerificationCode, changePassword, sendResetCode, resetPassword, googleAuth, verifyEmail } = require('../controllers/auth_controller/authController');
 const { verifyUser } = require('../middlewares/verifyUser');
 
 const authRouter = express.Router();
@@ -9,6 +9,8 @@ authRouter.post('/signup', signupHandler);
 authRouter.post('/signin', signinHandler);
 // Route for Google Auth
 authRouter.post('/google', googleAuth);
+// Route for email verification
+authRouter.get('/verify-email', verifyEmail);
 // Send verification code (for password change - requires auth)
 authRouter.post('/send-code', verifyUser, sendVerificationCode);
 // Change password (requires auth)

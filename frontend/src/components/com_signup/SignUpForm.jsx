@@ -38,8 +38,10 @@ export default function SignUpForm() {
         }
       );
 
-      toast.show(response.data.message || "Signup successful!", 'success');
-      navigate("/signin");
+      toast.show(response.data.message || "Account created! Please check your inbox and click the verification link.", 'success');
+      // Don't navigate immediately, let user read the message or navigate to a "check email" page
+      // For now, we can navigate to signin but maybe with a delay or just stay here
+      setTimeout(() => navigate("/signin"), 3000);
     } catch (error) {
       console.error("Error during signup:", error);
       if (error.response && error.response.data) {

@@ -174,6 +174,44 @@ const sendVerificationEmail = async (email, code) => {
   }
 };
 
+/**
+ * Send signup verification link to user
+ * @param {string} email - Recipient email address
+ * @param {string} link - Verification link
+ * @returns {Promise<Object>} - Email send result
+ */
+const sendSignupVerificationLink = async (email, link) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: `"BudgetBee" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Verify your BudgetBee Account',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #059669;">Welcome to BudgetBee!</h2>
+          <p>Please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${link}" style="background-color: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a>
+          </div>
+          <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+          <p style="color: #666; word-break: break-all;">${link}</p>
+          <p>This link will expire in 24 hours.</p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Signup verification email sent: %s', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending signup verification email:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
+  sendSignupVerificationLink
 };

@@ -109,7 +109,7 @@ export default function Documentation() {
               { id: 'account', title: '1. Account Management' },
               { id: 'homepage', title: '2. Homepage Overview' },
               { id: 'upload', title: '3. Smart Upload System' },
-              { id: 'diary', title: '4. Expense Diary' },
+              { id: 'diary', title: '4. Notes' },
               { id: 'notifications', title: '5. Notification System' },
               { id: 'settings', title: '6. Settings Overview' },
               { id: 'howto', title: '7. How to Use Application' },
@@ -176,10 +176,12 @@ export default function Documentation() {
                 <li>Click "Sign In" to access your dashboard</li>
               </ol>
               <p className={`mt-3 italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <strong>Forgot Password?</strong> Click the "Forgot Password" link on the sign-in page to reset your password via email.
+                <strong>Prefer a faster login?</strong><br></br> You can also sign in using Google Login by clicking the “Sign in with Google” button on the sign-in page.
+              </p>
+              <p className={`mt-3 italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <strong>Forgot Password?</strong><br></br> Click the "Forgot Password" link on the sign-in page to reset your password via email.
               </p>
             </div>
-
             <div>
               <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                 Sign Up
@@ -191,9 +193,12 @@ export default function Documentation() {
                 <li>Provide a valid email address</li>
                 <li>Create a strong password (minimum 8 characters)</li>
                 <li>Confirm your password</li>
-                <li>Click "Create Account"</li>
+                <li>Click "Sign Up"</li>
                 <li>Verify your email address (check your inbox)</li>
               </ol>
+              <p className={`mt-3 italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <strong>Or choose a faster way:</strong><br></br> You can also register instantly using Google Sign-Up by clicking the “Sign up with Google” button on the Sign Up page.
+              </p>
             </div>
 
             <div>
@@ -242,25 +247,25 @@ export default function Documentation() {
                 <div className={`p-4 rounded-lg ${isDark ? 'bg-[#1a1f2c]' : 'bg-gray-50'}`}>
                   <h4 className="font-semibold mb-2">📅 Daily Summary</h4>
                   <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                    View today's expenses or select any date using the calendar. Shows total spent, categories, and individual items purchased.
+                    View today’s expenses or select any date using the calendar. See the total spent, the highest expense category, and all category-wise expenses.
                   </p>
                 </div>
                 <div className={`p-4 rounded-lg ${isDark ? 'bg-[#1a1f2c]' : 'bg-gray-50'}`}>
                   <h4 className="font-semibold mb-2">📊 Weekly Summary</h4>
                   <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                    Current week's spending (Sunday to Saturday). Includes daily average and top spending days.
+                    Current week's spending (Sunday to Saturday). Includes total spent, daily average, top spending day, and top category of the week.
                   </p>
                 </div>
                 <div className={`p-4 rounded-lg ${isDark ? 'bg-[#1a1f2c]' : 'bg-gray-50'}`}>
                   <h4 className="font-semibold mb-2">📈 Monthly Summary</h4>
                   <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                    Current month's expenses with weekly and daily averages. Helps track budget progress.
+                    Current month's expenses, including total spent, highest-expense week and date, weekly and daily averages, and the top category of the month. Helps track budget progress.
                   </p>
                 </div>
                 <div className={`p-4 rounded-lg ${isDark ? 'bg-[#1a1f2c]' : 'bg-gray-50'}`}>
                   <h4 className="font-semibold mb-2">🎯 Yearly Summary</h4>
                   <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-                    Annual overview with monthly, weekly, and daily breakdowns. Perfect for long-term financial planning.
+                    Annual overview with total spent, highest-expense month, week, and date; monthly, weekly, and daily averages; and the top category of the year. Perfect for long-term financial planning.
                   </p>
                 </div>
               </div>
@@ -315,10 +320,9 @@ export default function Documentation() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>Automatic OCR Extraction:</strong> Reads merchant name, date, items, prices, and total</li>
                 <li><strong>Manual Editing:</strong> Correct any misread information before saving</li>
-                <li><strong>Multi-currency Support:</strong> Automatically detects currency symbols (₹, $, €, £, etc.)</li>
                 <li><strong>Item-level Categorization:</strong> Each product is assigned the most relevant category</li>
-                <li><strong>Batch Processing:</strong> Upload multiple receipts in one session</li>
                 <li><strong>Image Preview:</strong> View the original receipt alongside extracted data</li>
+                <li><strong>Add/Delete Rows:</strong> Easily insert new item rows or remove unnecessary ones for accurate record keeping</li>
               </ul>
             </div>
 
@@ -338,52 +342,19 @@ export default function Documentation() {
           </div>
         </section>
 
-        {/* 4. Expense Diary */}
+        {/* 4. Notes */}
         <section id="diary" className="mb-16">
           <h2 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            4. Expense Diary
+            4. Notes
           </h2>
           
           <div className="space-y-6">
             <p>
-              The Expense Diary provides a chronological list of all your uploaded receipts and expenses. It's your central hub for viewing, searching, editing, and managing financial records.
+              The Diary Session works just like a real-world personal diary, allowing users to record meaningful moments and important notes for each day. It provides a simple and intuitive space to write daily reflections, reminders, and anything you want to remember.
+              <br></br>
+              Users can also select their mood for the day, helping them track emotional patterns over time and understand how their daily experiences influence their well-being. This feature is especially useful for keeping personal notes, documenting progress, and maintaining a consistent daily journaling habit.
             </p>
 
-            <div>
-              <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                Features
-              </h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>Chronological View:</strong> See all expenses sorted by date (newest first)</li>
-                <li><strong>Search Functionality:</strong> Find specific expenses by merchant, item, or category</li>
-                <li><strong>Filter Options:</strong> Filter by date range, category, or amount</li>
-                <li><strong>Quick Actions:</strong> Edit or delete entries with one click</li>
-                <li><strong>Detailed View:</strong> Expand entries to see all items and categories</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                Editing Entries
-              </h3>
-              <ol className="list-decimal list-inside space-y-2 ml-4">
-                <li>Find the expense you want to edit</li>
-                <li>Modify merchant name, date, items, prices, or categories</li>
-                <li>Click "Save" to update</li>
-              </ol>
-            </div>
-
-            <div>
-              <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                Deleting Entries
-              </h3>
-              <p>To remove an expense:</p>
-              <ol className="list-decimal list-inside space-y-2 ml-4 mt-3">
-                <li>Click the "Delete" button on the entry</li>
-                <li>Confirm deletion in the popup dialog</li>
-                <li>The expense will be permanently removed from all summaries</li>
-              </ol>
-            </div>
           </div>
         </section>
 
@@ -447,7 +418,6 @@ export default function Documentation() {
                 <li><strong>Mark as Read:</strong> Click the checkmark icon to mark individual notifications as read</li>
                 <li><strong>Mark All as Read:</strong> Use the "Mark All as Read" button to clear all unread notifications</li>
                 <li><strong>Delete:</strong> Remove notifications using the trash icon</li>
-                <li><strong>Auto-Check:</strong> Limits are automatically checked after each expense upload</li>
               </ul>
             </div>
           </div>

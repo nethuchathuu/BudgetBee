@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const { pool } = require('../../config/db');
-const { sendVerificationEmail } = require('../../utils/emailService');
+const { sendVerificationEmail, sendSignupVerificationLink } = require('../../utils/emailService');
 
 // Environment variable for JWT secret
 const JWT_SECRET = process.env.JWT_SECRET ;
@@ -38,13 +38,31 @@ const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.execute(
-      `INSERT INTO users (fullname, email, password)
-       VALUES (?, ?, ?)`,
-      [fullname, email, hashedPassword]
+    // Insert user with verified = false (0)
+    const [result] = await pool.execute(
+      `INSERT INTO users (fullname, email, password, verified)
+       VALUES (?, ?, ?, ?)`,
+      [fullname, email, hashedPassword, 0]
     );
 
-    res.status(201).json({ message: 'User registered successfully' });
+    const userId = result.insertId;
+
+    // Generate verification token
+    const verifyToken = jwt.sign(
+      { id: userId, email: email },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // Construct verification URL
+    // Assuming frontend runs on port 5173 by default for Vite, or use env
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const verifyUrl = `${frontendUrl}/verify-email?token=${verifyToken}`;
+
+    // Send verification email
+    await sendSignupVerificationLink(email, verifyUrl);
+
+    res.status(201).json({ message: 'User registered successfully. Please check your email to verify your account.' });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during signup' });
@@ -65,7 +83,7 @@ const signin = async (req, res) => {
 
     // 1. Find user by email
     const [users] = await pool.execute(
-      'SELECT id, fullname, email, password FROM users WHERE email = ?',
+      'SELECT id, fullname, email, password, verified FROM users WHERE email = ?',
       [email]
     );
 
@@ -74,6 +92,11 @@ const signin = async (req, res) => {
     }
 
     const user = users[0];
+
+    // Check if user is verified
+    if (!user.verified) {
+      return res.status(401).json({ error: 'Please verify your email before signing in.' });
+    }
 
     // 2. Compare password with hashed password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -383,6 +406,32 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Verify Email function
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Update user verified status
+    await pool.execute(
+      'UPDATE users SET verified = 1 WHERE id = ?',
+      [decoded.id]
+    );
+
+    // Return success JSON instead of redirect
+    return res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    return res.status(400).json({ error: 'Invalid or expired verification token' });
+  }
+};
+
 // Google Auth function
 const googleAuth = async (req, res) => {
   try {
@@ -394,6 +443,12 @@ const googleAuth = async (req, res) => {
     if (users.length > 0) {
       // User exists, log them in
       const user = users[0];
+      
+      // Ensure user is verified (Google accounts are trusted)
+      if (!user.verified) {
+        await pool.execute('UPDATE users SET verified = 1 WHERE id = ?', [user.id]);
+      }
+
       const token = jwt.sign(
         { id: user.id, fullname: user.fullname, email: user.email },
         JWT_SECRET,
@@ -414,9 +469,10 @@ const googleAuth = async (req, res) => {
       const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
+      // Insert with verified = 1
       const [result] = await pool.execute(
-        'INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)',
-        [name, email, hashedPassword]
+        'INSERT INTO users (fullname, email, password, verified) VALUES (?, ?, ?, ?)',
+        [name, email, hashedPassword, 1]
       );
 
       const newUser = {
@@ -450,5 +506,6 @@ module.exports = {
   changePassword,
   sendResetCode,
   resetPassword,
-  googleAuth
+  googleAuth,
+  verifyEmail
 };
