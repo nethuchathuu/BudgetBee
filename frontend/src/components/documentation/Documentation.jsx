@@ -539,28 +539,33 @@ export default function Documentation() {
                 },
                 { 
                   num: '4', 
-                  title: 'Check your today\'s, current week\'s, monthly, and yearly summary',
-                  desc: 'Navigate to the homepage to see today\'s, current week\'s, monthly, and yearly expenses visualized in charts and expense cards.'
-                },
-                { 
-                  num: '5', 
                   title: 'Set Your Limits in Settings',
                   desc: 'Go to Settings → Notification Limits and configure your daily, weekly, monthly, and yearly spending caps.'
                 },
                 { 
-                  num: '6', 
+                  num: '5', 
                   title: 'Track Spending Daily/Weekly/Monthly/Yearly',
                   desc: 'Switch between time periods on the homepage to analyze spending patterns over different durations.'
                 },
                 { 
-                  num: '7', 
+                  num: '6', 
                   title: 'Read and Manage Notifications',
                   desc: 'Click the bell icon to view limit alerts. Mark as read or delete notifications to keep your inbox organized.'
                 },
                 { 
-                  num: '8', 
+                  num: '7', 
                   title: 'Explore Insights Through Charts',
                   desc: 'Use pie charts and bar graphs to identify top spending categories and optimize your budget.'
+                },
+                { 
+                  num: '8', 
+                  title: 'Download Spending Summary',
+                  desc: 'Download summary reports to easily view your spending insights. Export summary reports for budgeting, tracking progress, or keeping records offline.'
+                },
+                { 
+                  num: '9', 
+                  title: 'Add Notes',
+                  desc: 'Use the Notes feature to jot down important details or thoughts for the day, just like a diary. Add reminders, reflections, or anything worth remembering to stay organized.'
                 }
               ].map((step) => (
                 <div key={step.num} className={`p-5 rounded-lg border-l-4 ${
