@@ -1,103 +1,162 @@
-/* Diary Book Styles */
+:root {
+  /* Light Theme Defaults */
+  --diary-background: #F8FAFC;
+  --diary-page-bg: #FFFFFF;
+  --diary-page-shadow-color: rgba(0, 0, 0, 0.08);
+  --diary-text-primary: #1E293B;
+  --diary-text-secondary: #475569;
+  --diary-accent-green: #10B981;
+  --diary-accent-blue: #3B82F6;
+  --diary-border: #E2E8F0;
+  --diary-notebook-line: #E5E7EB;
+  --diary-header-blur-bg: rgba(255, 255, 255, 0.5);
+
+  /* Shadows using the shadow color */
+  --diary-shadow-sm: 0 1px 2px 0 var(--diary-page-shadow-color);
+  --diary-shadow-md: 0 4px 6px -1px var(--diary-page-shadow-color), 0 2px 4px -1px var(--diary-page-shadow-color);
+  --diary-shadow-lg: 0 10px 15px -3px var(--diary-page-shadow-color), 0 4px 6px -2px var(--diary-page-shadow-color);
+}
+
+/* Dark Theme Overrides */
+.dark {
+  --diary-background: #0c111c;
+  --diary-page-bg: rgba(255, 255, 255, 0.05);
+  --diary-page-shadow-color: rgba(0, 0, 0, 0.6);
+  --diary-text-primary: #E2E8F0;
+  --diary-text-secondary: #A5B4FC;
+  --diary-accent-green: #34D399;
+  --diary-accent-blue: #60A5FA;
+  --diary-border: #1E293B;
+  --diary-notebook-line: rgba(255, 255, 255, 0.08);
+  --diary-header-blur-bg: rgba(12, 17, 28, 0.4);
+}
+
 .diary-book {
-  perspective: 3000px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--diary-text-primary);
 }
 
 .book-container {
-  transform-style: preserve-3d;
-  position: relative;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    0 0 40px rgba(0, 0, 0, 0.1);
+  background-color: var(--diary-background);
+  border-radius: 16px;
+  box-shadow: var(--diary-shadow-lg);
+  overflow: hidden;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--diary-border);
+}
+
+.diary-navigation {
+  background-color: var(--diary-header-blur-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--diary-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-button {
+  background-color: transparent;
+  border: 1px solid var(--diary-border);
+  color: var(--diary-text-secondary);
+  padding: 0.5rem 1rem;
   border-radius: 8px;
-  background: linear-gradient(
-    to right,
-    #8b7355 0%,
-    #a0826d 5%,
-    #f4e8d8 5%,
-    #f4e8d8 50%,
-    #e8dcc8 50%,
-    #e8dcc8 95%,
-    #a0826d 95%,
-    #8b7355 100%
-  );
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: var(--diary-page-bg);
+  color: var(--diary-text-primary);
+  border-color: var(--diary-accent-blue);
+  box-shadow: var(--diary-shadow-sm);
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-date-display {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--diary-text-primary);
 }
 
 .diary-pages {
   display: flex;
+  flex: 1;
+  background-color: var(--diary-background);
+  padding: 2rem;
+  gap: 2rem;
   position: relative;
 }
 
 .diary-page {
   flex: 1;
-  padding: 3rem;
-  min-height: 600px;
-  background: linear-gradient(to bottom, #fdfbf7 0%, #f8f4ec 100%);
+  background-color: var(--diary-page-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--diary-shadow-md);
+  display: flex;
+  flex-direction: column;
   position: relative;
-  overflow: hidden;
-}
-
-.diary-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    repeating-linear-gradient(
-      transparent,
-      transparent 31px,
-      rgba(139, 115, 85, 0.15) 31px,
-      rgba(139, 115, 85, 0.15) 32px
-    );
-  pointer-events: none;
-  opacity: 0.5;
+  border: 1px solid var(--diary-border);
 }
 
 .diary-page.left-page {
-  border-right: 2px solid rgba(139, 115, 85, 0.2);
-  box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.05);
-}
-
-.diary-page.right-page {
-  box-shadow: inset 3px 0 8px rgba(0, 0, 0, 0.05);
+  border-right: 1px solid var(--diary-border);
 }
 
 .page-content {
-  position: relative;
-  z-index: 1;
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .page-date {
-  font-family: 'Georgia', serif;
-  font-size: 1.25rem;
-  color: #6b5744;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--diary-text-primary);
   margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid rgba(139, 115, 85, 0.2);
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--diary-border);
 }
 
 .page-text {
   flex: 1;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1rem;
-  line-height: 2rem;
-  color: #4a4a4a;
-  background: transparent;
+  width: 100%;
   border: none;
-  outline: none;
   resize: none;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  padding: 0.5rem 0;
+  font-size: 1.1rem;
+  line-height: 2rem;
+  color: var(--diary-text-primary);
+  background-color: transparent;
+  font-family: inherit;
+  padding: 0;
+  margin-top: 0;
+  
+  /* Notebook lines applied directly to text area for perfect alignment */
+  background-image: linear-gradient(transparent 95%, var(--diary-notebook-line) 95%);
+  background-size: 100% 2rem;
+  background-attachment: local;
+  /* Adjust padding to align text baseline with the lines */
+  padding-top: 0.25rem; 
 }
 
 .page-text:focus {
@@ -105,235 +164,101 @@
 }
 
 .page-text::placeholder {
-  color: rgba(139, 115, 85, 0.3);
-  font-style: italic;
-}
-
-.empty-page-message {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Georgia', serif;
-  font-style: italic;
-  color: rgba(139, 115, 85, 0.4);
-  font-size: 1.1rem;
-}
-
-.book-spine {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(
-    to bottom,
-    rgba(139, 115, 85, 0.4) 0%,
-    rgba(139, 115, 85, 0.6) 50%,
-    rgba(139, 115, 85, 0.4) 100%
-  );
-  transform: translateX(-50%);
-  z-index: 2;
-  box-shadow: 
-    -2px 0 4px rgba(0, 0, 0, 0.1),
-    2px 0 4px rgba(0, 0, 0, 0.1);
-}
-
-.diary-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  background: linear-gradient(to bottom, #6b5744 0%, #5a4936 100%);
-  border-radius: 8px 8px 0 0;
-}
-
-.nav-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #f4e8d8;
-  font-size: 0.95rem;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.nav-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.nav-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.nav-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.nav-date-display {
-  font-family: 'Georgia', serif;
-  font-size: 1.1rem;
-  color: #f4e8d8;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  color: var(--diary-text-secondary);
+  opacity: 0.6;
 }
 
 .save-status-inline {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  border-radius: 6px;
-  color: #10b981;
-  font-size: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
   font-weight: 500;
+}
+
+.save-status-inline {
+  color: var(--diary-accent-green);
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .save-status-inline.saving {
-  background: rgba(251, 191, 36, 0.15);
-  border-color: rgba(251, 191, 36, 0.4);
-  color: #fbbf24;
+  color: var(--diary-accent-blue);
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .save-status-inline.error {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #ef4444;
-}
-
-.save-status {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.5rem 1rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 6px;
-  color: #10b981;
-  font-size: 0.85rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 3;
-}
-
-.save-status.saving {
-  background: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.3);
-  color: #f59e0b;
-}
-
-.save-status.error {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .mood-selector {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--diary-border);
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(139, 115, 85, 0.2);
+  gap: 1rem;
+  justify-content: center;
 }
 
 .mood-button {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(139, 115, 85, 0.3);
-  border-radius: 20px;
-  font-size: 1.2rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background-color: var(--diary-background);
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
 }
 
 .mood-button:hover {
   transform: scale(1.1);
-  background: rgba(139, 115, 85, 0.1);
+  background-color: var(--diary-border);
 }
 
 .mood-button.selected {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  transform: scale(1.15);
+  border-color: var(--diary-accent-blue);
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.1);
 }
 
-/* Responsive Design */
+.empty-page-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--diary-text-secondary);
+  text-align: center;
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .diary-pages {
     flex-direction: column;
+    padding: 1rem;
   }
-  
+
   .diary-page {
-    padding: 2rem 1.5rem;
     min-height: 400px;
   }
-  
-  .diary-page.left-page {
-    border-right: none;
-    border-bottom: 2px solid rgba(139, 115, 85, 0.2);
-  }
-  
-  .book-spine {
-    width: 100%;
-    height: 4px;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-  }
-  
+
   .diary-navigation {
+    padding: 1rem;
     flex-direction: column;
     gap: 1rem;
   }
-  
-  .page-date {
-    font-size: 1.1rem;
-  }
-  
-  .page-text {
-    font-size: 0.95rem;
-    line-height: 1.8rem;
-  }
-}
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .book-container {
-    background: linear-gradient(
-      to right,
-      #4a3f35 0%,
-      #5a4d3f 5%,
-      #2c2520 5%,
-      #2c2520 50%,
-      #1f1b18 50%,
-      #1f1b18 95%,
-      #5a4d3f 95%,
-      #4a3f35 100%
-    );
-  }
-  
-  .diary-page {
-    background: linear-gradient(to bottom, #1a1614 0%, #0f0d0b 100%);
-  }
-  
-  .page-date {
-    color: #d4c4a8;
-  }
-  
-  .page-text {
-    color: #e8dcc8;
+  .nav-date-display {
+    order: -1;
   }
 }

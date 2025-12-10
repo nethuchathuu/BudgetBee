@@ -3,6 +3,7 @@ import { RotateCcw, AlertTriangle, Trash2, CheckCircle, X } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
+import './Reset.css';
 
 export default function Reset() {
   const { isDark } = useTheme();
@@ -10,6 +11,24 @@ export default function Reset() {
   const [showFullResetModal, setShowFullResetModal] = useState(false);
   const [password, setPassword] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [showPrefPopup, setShowPrefPopup] = useState(false);
+  const [showCachePopup, setShowCachePopup] = useState(false);
+
+  const handleResetPreferences = () => {
+    localStorage.removeItem('theme');
+    localStorage.removeItem('defaultDashboard');
+    localStorage.removeItem('notifications');
+    setShowPrefPopup(false);
+    alert('Preferences Reset Successfully');
+    // Optional: Reload to apply changes
+    window.location.reload();
+  };
+
+  const handleClearCache = () => {
+    localStorage.clear();
+    setShowCachePopup(false);
+    alert('Cache Cleared Successfully');
+  };
 
   const resetPreferences = () => {
     try {
@@ -194,18 +213,7 @@ export default function Reset() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={resetPreferences}
-                className={`
-                  w-full py-2 px-4 rounded-lg font-medium transition-colors
-                  ${isDark 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }
-                `}
-              >
-                Reset Now
-              </button>
+              <button className='reset-btn' onClick={() => setShowPrefPopup(true)}>Reset Now</button>
             </div>
 
             {/* Clear Cache */}
@@ -227,18 +235,7 @@ export default function Reset() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={clearLocalCache}
-                className={`
-                  w-full py-2 px-4 rounded-lg font-medium transition-colors
-                  ${isDark 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }
-                `}
-              >
-                Reset Now
-              </button>
+              <button className='reset-btn' onClick={() => setShowCachePopup(true)}>Reset Now</button>
             </div>
           </div>
         </div>
@@ -373,6 +370,34 @@ export default function Reset() {
                   {isResetting ? 'Resetting...' : 'Confirm Reset'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preference Reset Popup */}
+      {showPrefPopup && (
+        <div className='popup-overlay'>
+          <div className='popup-box'>
+            <h3>Reset Preferences?</h3>
+            <p>This will clear your theme, dashboard and notification settings.</p>
+            <div className='popup-actions'>
+              <button onClick={() => setShowPrefPopup(false)} className='cancel-btn'>Cancel</button>
+              <button onClick={handleResetPreferences} className='confirm-btn'>Reset</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cache Clear Popup */}
+      {showCachePopup && (
+        <div className='popup-overlay'>
+          <div className='popup-box'>
+            <h3>Clear Cache?</h3>
+            <p>This will remove temporary files and cached offline data.</p>
+            <div className='popup-actions'>
+              <button onClick={() => setShowCachePopup(false)} className='cancel-btn'>Cancel</button>
+              <button onClick={handleClearCache} className='confirm-btn'>Clear</button>
             </div>
           </div>
         </div>

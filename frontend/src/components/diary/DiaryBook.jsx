@@ -121,9 +121,7 @@ export default function DiaryBook() {
 
     // Set new auto-save timeout (2 seconds after user stops typing)
     const timeout = setTimeout(() => {
-      if (newContent.trim()) {
-        saveDiaryEntry(currentDate, newContent, rightPageMood);
-      }
+      saveDiaryEntry(currentDate, newContent, rightPageMood);
     }, 2000);
 
     setAutoSaveTimeout(timeout);
@@ -131,9 +129,7 @@ export default function DiaryBook() {
 
   const handleMoodChange = (newMood) => {
     setRightPageMood(newMood);
-    if (rightPageContent.trim()) {
-      saveDiaryEntry(currentDate, rightPageContent, newMood);
-    }
+    saveDiaryEntry(currentDate, rightPageContent, newMood);
   };
 
   const handlePreviousDay = () => {

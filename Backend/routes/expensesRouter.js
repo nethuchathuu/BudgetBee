@@ -11,6 +11,9 @@ router.get('/test', (req, res) => {
 // Add new expense
 router.post('/add', verifyUser, expensesController.addExpense);
 
+// Add multiple expenses (Bill)
+router.post('/addBill', verifyUser, expensesController.addBill);
+
 // Daily summary - current date (temporarily without auth for testing)
 router.get('/summary/daily/:user_id', expensesController.getDailySummary);
 

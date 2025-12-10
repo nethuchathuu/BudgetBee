@@ -38,10 +38,10 @@ const saveDiaryEntry = async (req, res) => {
     const { date, content, mood } = req.body;
     const userId = req.user.id;
 
-    if (!date || !content) {
+    if (!date) {
       return res.status(400).json({
         success: false,
-        message: 'Date and content are required'
+        message: 'Date is required'
       });
     }
 

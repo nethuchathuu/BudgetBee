@@ -705,16 +705,8 @@ export default function Documentation() {
                 a: 'Check if you\'ve set spending limits in Settings → Notification Limits. If limits are set to 0, notifications won\'t trigger. Also, notifications only appear when you exceed the limit, not before.'
               },
               {
-                q: 'How can I change the category of an item?',
-                a: 'Navigate to the Expense Diary, find the expense, click Edit, and change the category dropdown for the specific item. Click Save Changes to update.'
-              },
-              {
                 q: 'What should I do if charts show empty data?',
                 a: 'This means no expenses have been recorded for the selected time period. Upload receipts to populate the charts. If you recently uploaded expenses, try refreshing the page.'
-              },
-              {
-                q: 'Can I delete my account?',
-                a: 'Currently, account deletion is handled through Settings → Reset All Data, which removes all expenses and settings but keeps your account active. Contact support for complete account deletion.'
               },
               {
                 q: 'Is my data secure?',
@@ -781,7 +773,7 @@ export default function Documentation() {
 
             <div>
               <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                Deleting Account and Data
+                Deleting Data
               </h3>
               <p className="mb-3">To remove all your data:</p>
               <ol className="list-decimal list-inside space-y-2 ml-4">
@@ -790,9 +782,7 @@ export default function Documentation() {
                 <li>Confirm deletion</li>
                 <li>All expenses, receipts, notifications, and settings will be permanently deleted</li>
               </ol>
-              <p className={`mt-4 italic ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                For complete account closure, contact support at supportbudgetbee@gmail.com
-              </p>
+              
             </div>
 
             <div className={`p-5 rounded-lg border-l-4 ${
@@ -819,7 +809,8 @@ export default function Documentation() {
               href="mailto:supportbudgetbee@gmail.com"
               className={`font-semibold ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'}`}
             >
-              supportbudgetbee@gmail.com
+              budgetbeefyp@gmail.com
+
             </a>
           </p>
           <p className={`mt-4 text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>

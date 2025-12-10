@@ -32,7 +32,7 @@ export default function DiaryPage({
               className="page-text"
               value={content || ''}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="Write your thoughts here..."
+              placeholder="Something that keeps you moving forward…"
               style={{
                 fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
               }}

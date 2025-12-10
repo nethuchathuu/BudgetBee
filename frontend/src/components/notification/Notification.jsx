@@ -11,9 +11,118 @@ const Notification = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // New States for Limits and Spending
+  const [dailyLimit, setDailyLimit] = useState(0);
+  const [weeklyLimit, setWeeklyLimit] = useState(0);
+  const [monthlyLimit, setMonthlyLimit] = useState(0);
+  const [yearlyLimit, setYearlyLimit] = useState(0);
+
+  const [dailySpent, setDailySpent] = useState(0);
+  const [weeklySpent, setWeeklySpent] = useState(0);
+  const [monthlySpent, setMonthlySpent] = useState(0);
+  const [yearlySpent, setYearlySpent] = useState(0);
+
+  const [hasNotifiedDaily, setHasNotifiedDaily] = useState(false);
+  const [hasNotifiedWeekly, setHasNotifiedWeekly] = useState(false);
+  const [hasNotifiedMonthly, setHasNotifiedMonthly] = useState(false);
+  const [hasNotifiedYearly, setHasNotifiedYearly] = useState(false);
+
   useEffect(() => {
     fetchNotifications();
+    fetchLimits();
+    fetchSpending();
   }, []);
+
+  useEffect(() => {
+    setHasNotifiedDaily(false);
+    setHasNotifiedWeekly(false);
+    setHasNotifiedMonthly(false);
+    setHasNotifiedYearly(false);
+  }, [dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit]);
+
+  useEffect(() => {
+    checkLimits();
+  }, [dailySpent, weeklySpent, monthlySpent, yearlySpent, dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit, hasNotifiedDaily, hasNotifiedWeekly, hasNotifiedMonthly, hasNotifiedYearly]);
+
+  const fetchLimits = async () => {
+    try {
+      const userId = localStorage.getItem('user_id') || 1;
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:5000/api/limits/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data) {
+        setDailyLimit(response.data.daily_limit || 0);
+        setWeeklyLimit(response.data.weekly_limit || 0);
+        setMonthlyLimit(response.data.monthly_limit || 0);
+        setYearlyLimit(response.data.yearly_limit || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching limits:', error);
+    }
+  };
+
+  const fetchSpending = async () => {
+    try {
+      const userId = localStorage.getItem('user_id') || 1;
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://localhost:5000/api/expense/totals/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDailySpent(res.data.daily ?? 0);
+      setWeeklySpent(res.data.weekly ?? 0);
+      setMonthlySpent(res.data.monthly ?? 0);
+      setYearlySpent(res.data.yearly ?? 0);
+    } catch (error) {
+      console.error('Error fetching spending:', error);
+    }
+  };
+
+  const createNotification = async (data) => {
+    try {
+      const userId = localStorage.getItem('user_id') || 1;
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/notifications', {
+        user_id: userId,
+        ...data
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  };
+
+  const sendNotification = (type, limit, spent) => {
+    createNotification({
+      title: `${type} Spending Limit Exceeded! 📊`,
+      message: `Your ${type.toLowerCase()} spending limit of Rs. ${limit.toFixed(2)} has been passed! This ${type.toLowerCase()}'s spending: Rs. ${spent.toFixed(2)}`,
+      type: 'alert'
+    });
+  };
+
+  const checkLimits = () => {
+    if (dailyLimit > 0 && dailySpent > dailyLimit && !hasNotifiedDaily) {
+      sendNotification('Daily', dailyLimit, dailySpent);
+      setHasNotifiedDaily(true);
+    }
+
+    if (weeklyLimit > 0 && weeklySpent > weeklyLimit && !hasNotifiedWeekly) {
+      sendNotification('Weekly', weeklyLimit, weeklySpent);
+      setHasNotifiedWeekly(true);
+    }
+
+    if (monthlyLimit > 0 && monthlySpent > monthlyLimit && !hasNotifiedMonthly) {
+      sendNotification('Monthly', monthlyLimit, monthlySpent);
+      setHasNotifiedMonthly(true);
+    }
+
+    if (yearlyLimit > 0 && yearlySpent > yearlyLimit && !hasNotifiedYearly) {
+      sendNotification('Yearly', yearlyLimit, yearlySpent);
+      setHasNotifiedYearly(true);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -94,6 +203,24 @@ const Notification = () => {
     const unreadNotifications = notifications.filter(n => !n.isRead);
     for (const notif of unreadNotifications) {
       await markAsRead(notif.id);
+    }
+  };
+
+  const deleteAllNotifications = async () => {
+    try {
+      const userId = localStorage.getItem('user_id') || 1;
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/notifications/deleteAll/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setNotifications([]);
+      localStorage.setItem('notifications', '[]');
+    } catch (error) {
+      console.error('Error deleting all notifications:', error);
+      // Fallback for demo/local
+      setNotifications([]);
+      localStorage.setItem('notifications', '[]');
     }
   };
 
@@ -182,18 +309,28 @@ const Notification = () => {
               </div>
             </div>
             
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isDark
-                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
-                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                }`}
-              >
-                Mark all as read
-              </button>
-            )}
+            <div className="flex gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isDark
+                      ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                      : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                  }`}
+                >
+                  Mark all as read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={deleteAllNotifications}
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-[#ff5252] text-white hover:bg-[#ff3030]"
+                >
+                  Delete All
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

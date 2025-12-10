@@ -8,11 +8,14 @@ export default function NotLimit() {
   const { isDark } = useTheme();
   const toast = useToast();
 
-  const [limits, setLimits] = useState({
-    dailyLimit: 0,
-    weeklyLimit: 0,
-    monthlyLimit: 0,
-    yearlyLimit: 0,
+  // Individual states for limits initialized to '0' as requested
+  const [dailyLimit, setDailyLimit] = useState('0');
+  const [weeklyLimit, setWeeklyLimit] = useState('0');
+  const [monthlyLimit, setMonthlyLimit] = useState('0');
+  const [yearlyLimit, setYearlyLimit] = useState('0');
+
+  // Settings state for booleans and threshold
+  const [settings, setSettings] = useState({
     enableDailyAlerts: true,
     enableWeeklyAlerts: true,
     enableMonthlyAlerts: true,
@@ -34,11 +37,13 @@ export default function NotLimit() {
       });
       
       if (response.data) {
-        setLimits({
-          dailyLimit: response.data.daily_limit || 0,
-          weeklyLimit: response.data.weekly_limit || 0,
-          monthlyLimit: response.data.monthly_limit || 0,
-          yearlyLimit: response.data.yearly_limit || 0,
+        // Ensure defaults from API are converted to strings
+        setDailyLimit(String(response.data.daily_limit ?? 0));
+        setWeeklyLimit(String(response.data.weekly_limit ?? 0));
+        setMonthlyLimit(String(response.data.monthly_limit ?? 0));
+        setYearlyLimit(String(response.data.yearly_limit ?? 0));
+
+        setSettings({
           enableDailyAlerts: true,
           enableWeeklyAlerts: true,
           enableMonthlyAlerts: true,
@@ -51,16 +56,49 @@ export default function NotLimit() {
       // Fallback to localStorage
       const saved = localStorage.getItem('budgetbee-notification-limits');
       if (saved) {
-        setLimits(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setDailyLimit(String(parsed.dailyLimit ?? 0));
+        setWeeklyLimit(String(parsed.weeklyLimit ?? 0));
+        setMonthlyLimit(String(parsed.monthlyLimit ?? 0));
+        setYearlyLimit(String(parsed.yearlyLimit ?? 0));
+        
+        setSettings(prev => ({
+          ...prev,
+          enableDailyAlerts: parsed.enableDailyAlerts ?? true,
+          enableWeeklyAlerts: parsed.enableWeeklyAlerts ?? true,
+          enableMonthlyAlerts: parsed.enableMonthlyAlerts ?? true,
+          enableYearlyAlerts: parsed.enableYearlyAlerts ?? true,
+          alertThreshold: parsed.alertThreshold ?? 80
+        }));
       }
     }
   };
 
-  const handleLimitChange = (field, value) => {
-    setLimits(prev => ({
+  const handleSettingChange = (field, value) => {
+    setSettings(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleLimitChange = (setter) => (e) => {
+    let value = e.target.value;
+
+    // Allow empty string so user can erase 0
+    if (value === '') {
+      setter('');
+      return;
+    }
+
+    // Block non-numbers
+    if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+
+    // Remove leading zeroes (except decimal values like 0.50)
+    if (value.length > 1 && value.startsWith('0') && !value.startsWith('0.')) {
+      value = value.replace(/^0+/, '');
+    }
+
+    setter(value);
   };
 
   const handleSave = async () => {
@@ -68,20 +106,36 @@ export default function NotLimit() {
       const userId = localStorage.getItem('user_id') || 1;
       const token = localStorage.getItem('token');
       
-      // Save to database
-      await axios.post('http://localhost:5000/api/limits', {
+      // Prepare data, converting empty strings to 0
+      const dataToSave = {
         user_id: userId,
-        daily_limit: limits.dailyLimit,
-        weekly_limit: limits.weeklyLimit,
-        monthly_limit: limits.monthlyLimit,
-        yearly_limit: limits.yearlyLimit,
-        alert_threshold: limits.alertThreshold
-      }, {
+        daily_limit: dailyLimit === '' ? 0 : dailyLimit,
+        weekly_limit: weeklyLimit === '' ? 0 : weeklyLimit,
+        monthly_limit: monthlyLimit === '' ? 0 : monthlyLimit,
+        yearly_limit: yearlyLimit === '' ? 0 : yearlyLimit,
+        alert_threshold: settings.alertThreshold
+      };
+      
+      // Save to database
+      await axios.post('http://localhost:5000/api/limits', dataToSave, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      // Update state with sanitized values
+      setDailyLimit(String(dataToSave.daily_limit));
+      setWeeklyLimit(String(dataToSave.weekly_limit));
+      setMonthlyLimit(String(dataToSave.monthly_limit));
+      setYearlyLimit(String(dataToSave.yearly_limit));
+      
       // Save to localStorage as backup
-      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(limits));
+      const storageData = {
+        dailyLimit: dataToSave.daily_limit,
+        weeklyLimit: dataToSave.weekly_limit,
+        monthlyLimit: dataToSave.monthly_limit,
+        yearlyLimit: dataToSave.yearly_limit,
+        ...settings
+      };
+      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(storageData));
       
       // Trigger limit check
       await axios.post('http://localhost:5000/api/limits/check', {
@@ -94,24 +148,32 @@ export default function NotLimit() {
     } catch (error) {
       console.error('Error saving limits:', error);
       // Fallback to localStorage only
-      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(limits));
+      const storageData = {
+        dailyLimit: dailyLimit === '' ? 0 : dailyLimit,
+        weeklyLimit: weeklyLimit === '' ? 0 : weeklyLimit,
+        monthlyLimit: monthlyLimit === '' ? 0 : monthlyLimit,
+        yearlyLimit: yearlyLimit === '' ? 0 : yearlyLimit,
+        ...settings
+      };
+      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(storageData));
       toast.show('Limits saved locally', 'success');
     }
   };
 
   const handleReset = async () => {
-    const defaults = {
-      dailyLimit: 0,
-      weeklyLimit: 0,
-      monthlyLimit: 0,
-      yearlyLimit: 0,
+    setDailyLimit('0');
+    setWeeklyLimit('0');
+    setMonthlyLimit('0');
+    setYearlyLimit('0');
+    
+    const defaultSettings = {
       enableDailyAlerts: true,
       enableWeeklyAlerts: true,
       enableMonthlyAlerts: true,
       enableYearlyAlerts: true,
       alertThreshold: 80
     };
-    setLimits(defaults);
+    setSettings(defaultSettings);
     
     try {
       const userId = localStorage.getItem('user_id') || 1;
@@ -128,11 +190,25 @@ export default function NotLimit() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(defaults));
+      const storageData = {
+        dailyLimit: 0,
+        weeklyLimit: 0,
+        monthlyLimit: 0,
+        yearlyLimit: 0,
+        ...defaultSettings
+      };
+      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(storageData));
       toast.show('Notification limits reset to defaults', 'info');
     } catch (error) {
       console.error('Error resetting limits:', error);
-      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(defaults));
+      const storageData = {
+        dailyLimit: 0,
+        weeklyLimit: 0,
+        monthlyLimit: 0,
+        yearlyLimit: 0,
+        ...defaultSettings
+      };
+      localStorage.setItem('budgetbee-notification-limits', JSON.stringify(storageData));
       toast.show('Limits reset locally', 'info');
     }
   };
@@ -166,8 +242,8 @@ export default function NotLimit() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={limits.enableDailyAlerts}
-                onChange={(e) => handleLimitChange('enableDailyAlerts', e.target.checked)}
+                checked={settings.enableDailyAlerts}
+                onChange={(e) => handleSettingChange('enableDailyAlerts', e.target.checked)}
                 className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-400"
               />
               <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -178,9 +254,10 @@ export default function NotLimit() {
           <div className="flex items-center gap-3">
             <span className={`text-2xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rs.</span>
             <input
-              type="number"
-              value={limits.dailyLimit}
-              onChange={(e) => handleLimitChange('dailyLimit', Number(e.target.value))}
+              type="text"
+              value={dailyLimit}
+              onChange={handleLimitChange(setDailyLimit)}
+              placeholder="Enter limit amount"
               className={`
                 flex-1 px-4 py-3 rounded-lg text-lg font-semibold outline-none border-2
                 ${isDark 
@@ -204,8 +281,8 @@ export default function NotLimit() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={limits.enableWeeklyAlerts}
-                onChange={(e) => handleLimitChange('enableWeeklyAlerts', e.target.checked)}
+                checked={settings.enableWeeklyAlerts}
+                onChange={(e) => handleSettingChange('enableWeeklyAlerts', e.target.checked)}
                 className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-400"
               />
               <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -216,9 +293,10 @@ export default function NotLimit() {
           <div className="flex items-center gap-3">
             <span className={`text-2xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rs.</span>
             <input
-              type="number"
-              value={limits.weeklyLimit}
-              onChange={(e) => handleLimitChange('weeklyLimit', Number(e.target.value))}
+              type="text"
+              value={weeklyLimit}
+              onChange={handleLimitChange(setWeeklyLimit)}
+              placeholder="Enter limit amount"
               className={`
                 flex-1 px-4 py-3 rounded-lg text-lg font-semibold outline-none border-2
                 ${isDark 
@@ -242,8 +320,8 @@ export default function NotLimit() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={limits.enableMonthlyAlerts}
-                onChange={(e) => handleLimitChange('enableMonthlyAlerts', e.target.checked)}
+                checked={settings.enableMonthlyAlerts}
+                onChange={(e) => handleSettingChange('enableMonthlyAlerts', e.target.checked)}
                 className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-400"
               />
               <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -254,9 +332,10 @@ export default function NotLimit() {
           <div className="flex items-center gap-3">
             <span className={`text-2xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rs.</span>
             <input
-              type="number"
-              value={limits.monthlyLimit}
-              onChange={(e) => handleLimitChange('monthlyLimit', Number(e.target.value))}
+              type="text"
+              value={monthlyLimit}
+              onChange={handleLimitChange(setMonthlyLimit)}
+              placeholder="Enter limit amount"
               className={`
                 flex-1 px-4 py-3 rounded-lg text-lg font-semibold outline-none border-2
                 ${isDark 
@@ -280,8 +359,8 @@ export default function NotLimit() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={limits.enableYearlyAlerts}
-                onChange={(e) => handleLimitChange('enableYearlyAlerts', e.target.checked)}
+                checked={settings.enableYearlyAlerts}
+                onChange={(e) => handleSettingChange('enableYearlyAlerts', e.target.checked)}
                 className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-400"
               />
               <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -292,9 +371,10 @@ export default function NotLimit() {
           <div className="flex items-center gap-3">
             <span className={`text-2xl ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rs.</span>
             <input
-              type="number"
-              value={limits.yearlyLimit}
-              onChange={(e) => handleLimitChange('yearlyLimit', Number(e.target.value))}
+              type="text"
+              value={yearlyLimit}
+              onChange={handleLimitChange(setYearlyLimit)}
+              placeholder="Enter limit amount"
               className={`
                 flex-1 px-4 py-3 rounded-lg text-lg font-semibold outline-none border-2
                 ${isDark 
@@ -323,12 +403,12 @@ export default function NotLimit() {
               min="50"
               max="100"
               step="5"
-              value={limits.alertThreshold}
-              onChange={(e) => handleLimitChange('alertThreshold', Number(e.target.value))}
+              value={settings.alertThreshold}
+              onChange={(e) => handleSettingChange('alertThreshold', Number(e.target.value))}
               className="flex-1"
             />
             <span className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-500'} min-w-[70px]`}>
-              {limits.alertThreshold}%
+              {settings.alertThreshold}%
             </span>
           </div>
         </div>

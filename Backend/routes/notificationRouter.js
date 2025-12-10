@@ -15,6 +15,6 @@ router.patch('/:id/read', notificationController.markAsRead);
 router.delete('/:id', notificationController.deleteNotification);
 
 // Delete all notifications for a user
-router.delete('/user/:user_id', notificationController.deleteAllNotifications);
+router.delete('/deleteAll/:user_id', notificationController.deleteAllNotifications);
 
 module.exports = router;

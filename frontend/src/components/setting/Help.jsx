@@ -34,8 +34,8 @@ export default function Help() {
     {
       icon: Mail,
       label: 'Email Support',
-      value: 'supportbudgetbee@gmail.com',
-      link: 'mailto:supportbudgetbee@gmail.com',
+      value: 'budgetbeefyp@gmail.com',
+      link: 'mailto:budgetbeefyp@gmail.com',
       color: 'text-blue-500'
     }
     /*{

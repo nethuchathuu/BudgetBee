@@ -18,6 +18,74 @@ const generateCategoryColor = (category) => {
 };
 
 const expensesController = {
+  // Add multiple expenses (Bill)
+  addBill: async (req, res) => {
+    try {
+      const { user_id, bill_date, items } = req.body;
+
+      if (!user_id || !bill_date || !items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields or invalid items array'
+        });
+      }
+
+      // Use a transaction to ensure atomicity
+      const connection = await db.getConnection();
+      await connection.beginTransaction();
+
+      try {
+        const query = `
+          INSERT INTO expenses (user_id, bill_date, shop_name, category_name, product_name, price, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        // Use bill_date as created_at for consistency with the bill
+        const effectiveCreatedAt = bill_date;
+
+        for (const item of items) {
+           const normalizedPrice = Number(parseFloat(item.price)) || 0;
+           await connection.execute(query, [
+             user_id,
+             bill_date,
+             item.shop_name || 'Unknown Shop',
+             item.category_name || 'Uncategorized',
+             item.product_name || 'Unknown Item',
+             normalizedPrice,
+             effectiveCreatedAt
+           ]);
+        }
+
+        await connection.commit();
+        connection.release();
+
+        // Run limit checks ONCE after all items are added
+        // This satisfies "checkOnlyAfterBillProcessed" and "step2_checkLimitsOnce"
+        runLimitChecks(user_id).catch(err => {
+          console.error('Error running limit checks:', err);
+        });
+
+        return res.status(201).json({
+          success: true,
+          message: 'Bill added successfully'
+        });
+
+      } catch (err) {
+        await connection.rollback();
+        connection.release();
+        console.error('Transaction failed, rolled back.', err);
+        throw err;
+      }
+
+    } catch (error) {
+      console.error('Error adding bill:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  },
+
   // Add new expense
   addExpense: async (req, res) => {
     try {

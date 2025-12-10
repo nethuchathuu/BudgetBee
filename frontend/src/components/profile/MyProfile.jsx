@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
 import NavProfile from '../NavProfile';
+import './MyProfile.css';
 
 export default function MyProfile() {
   const { isDark, theme } = useTheme();
@@ -24,10 +25,17 @@ export default function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profilePreview, setProfilePreview] = useState(null);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = '/signin';
+  };
 
   const fetchUserProfile = async () => {
     try {
@@ -362,9 +370,26 @@ export default function MyProfile() {
               </>
             )}
           </div>
+          
+          {/* Logout Button */}
+          <button className='logout-btn' onClick={() => setShowLogoutPopup(true)}>Logout</button>
         </div>
       </div>
     </div>
+
+    {/* Logout Popup */}
+    {showLogoutPopup && (
+      <div className='logout-popup-overlay'>
+        <div className='logout-popup-box'>
+          <h3>Confirm Logout</h3>
+          <p>Are you sure you want to logout?</p>
+          <div className='popup-actions'>
+            <button onClick={() => setShowLogoutPopup(false)} className='cancel-btn'>Cancel</button>
+            <button onClick={handleLogout} className='confirm-btn'>Logout</button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 }

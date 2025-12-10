@@ -64,7 +64,7 @@ export default function NavBar() {
           onClick={() => navigate("/diary")}
           className="bg-[#1a1f2c] hover:bg-emerald-400 hover:text-[#0c111c] text-white px-4 py-2 rounded-xl shadow transition"
         >
-          Diary
+          Notes
         </button>
       </div>
 
