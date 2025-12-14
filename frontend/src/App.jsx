@@ -13,6 +13,7 @@ import Appearance from "./components/setting/Appearance";
 import SetHome from "./components/setting/SetHome";
 import NotLimit from "./components/setting/NotLimit";
 import Help from "./components/setting/Help";
+import Support from "./components/help/Support";
 import Reset from "./components/setting/Reset";
 import Notification from "./components/notification/Notification";
 import Documentation from "./components/documentation/Documentation";
@@ -41,6 +42,7 @@ function App() {
             <Route path="/upload" element={<Upload />} />
             <Route path="/diary" element={<DiaryBook />} />
             <Route path="/notification" element={<Notification />} />
+            <Route path="/support" element={<Support />} />
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/profile" element={<MyProfile />} />
             <Route path="/profile/change-password" element={<ChangePassword />} />

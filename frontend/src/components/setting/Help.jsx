@@ -35,7 +35,7 @@ export default function Help() {
       icon: Mail,
       label: 'Email Support',
       value: 'budgetbeefyp@gmail.com',
-      link: 'mailto:budgetbeefyp@gmail.com',
+      action: () => navigate('/support'),
       color: 'text-blue-500'
     }
     /*{
@@ -114,11 +114,11 @@ export default function Help() {
           {contactOptions.map((option, index) => {
             const Icon = option.icon;
             return (
-              <a
+              <div
                 key={index}
-                href={option.link}
+                onClick={option.action}
                 className={`
-                  p-6 rounded-lg text-center transition-all border-2
+                  p-6 rounded-lg text-center transition-all border-2 cursor-pointer
                   ${isDark 
                     ? 'bg-[#0c111c] border-gray-700 hover:border-emerald-400' 
                     : 'bg-gray-50 border-gray-200 hover:border-emerald-400'
@@ -132,7 +132,7 @@ export default function Help() {
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   {option.value}
                 </p>
-              </a>
+              </div>
             );
           })}
         </div>

@@ -7,6 +7,7 @@ const notificationRoutes = require('./routes/notificationRouter');
 const limitsRoutes = require('./routes/limitsRouter');
 const userRoutes = require('./routes/userRouter');
 const diaryRoutes = require('./routes/diaryRouter');
+const supportRoutes = require('./routes/supportRouter');
 const app = express();
 const server = require('http').createServer(app);
 const cors = require('cors');
@@ -24,6 +25,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/limits', limitsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/diary', diaryRoutes);
+app.use('/api/support', supportRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

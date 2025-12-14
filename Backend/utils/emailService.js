@@ -212,6 +212,7 @@ const sendSignupVerificationLink = async (email, link) => {
 };
 
 module.exports = {
+  createTransporter,
   sendVerificationEmail,
   sendSignupVerificationLink
 };
