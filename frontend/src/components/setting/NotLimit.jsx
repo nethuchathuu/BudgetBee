@@ -43,11 +43,14 @@ export default function NotLimit() {
         setMonthlyLimit(String(response.data.monthly_limit ?? 0));
         setYearlyLimit(String(response.data.yearly_limit ?? 0));
 
+        // Helper to safely parse boolean/integer flags, defaulting to true
+        const isEnabled = (val) => val !== 0 && val !== false;
+
         setSettings({
-          enableDailyAlerts: true,
-          enableWeeklyAlerts: true,
-          enableMonthlyAlerts: true,
-          enableYearlyAlerts: true,
+          enableDailyAlerts: isEnabled(response.data.enable_daily_alerts),
+          enableWeeklyAlerts: isEnabled(response.data.enable_weekly_alerts),
+          enableMonthlyAlerts: isEnabled(response.data.enable_monthly_alerts),
+          enableYearlyAlerts: isEnabled(response.data.enable_yearly_alerts),
           alertThreshold: response.data.alert_threshold || 80
         });
       }
@@ -74,11 +77,41 @@ export default function NotLimit() {
     }
   };
 
-  const handleSettingChange = (field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleSettingChange = async (field, value) => {
+    // Update local state immediately
+    setSettings(prev => {
+      const newSettings = { ...prev, [field]: value };
+      
+      // Auto-save for checkboxes
+      if (field.startsWith('enable')) {
+        saveSettingsToBackend(newSettings);
+      }
+      return newSettings;
+    });
+  };
+
+  const saveSettingsToBackend = async (currentSettings) => {
+    try {
+      const userId = localStorage.getItem('user_id') || 1;
+      const token = localStorage.getItem('token');
+      
+      await axios.post('http://localhost:5000/api/limits', {
+        user_id: userId,
+        daily_limit: dailyLimit === '' ? 0 : dailyLimit,
+        weekly_limit: weeklyLimit === '' ? 0 : weeklyLimit,
+        monthly_limit: monthlyLimit === '' ? 0 : monthlyLimit,
+        yearly_limit: yearlyLimit === '' ? 0 : yearlyLimit,
+        alert_threshold: currentSettings.alertThreshold,
+        enable_daily_alerts: currentSettings.enableDailyAlerts,
+        enable_weekly_alerts: currentSettings.enableWeeklyAlerts,
+        enable_monthly_alerts: currentSettings.enableMonthlyAlerts,
+        enable_yearly_alerts: currentSettings.enableYearlyAlerts
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error('Error auto-saving settings:', error);
+    }
   };
 
   const handleLimitChange = (setter) => (e) => {
@@ -113,7 +146,11 @@ export default function NotLimit() {
         weekly_limit: weeklyLimit === '' ? 0 : weeklyLimit,
         monthly_limit: monthlyLimit === '' ? 0 : monthlyLimit,
         yearly_limit: yearlyLimit === '' ? 0 : yearlyLimit,
-        alert_threshold: settings.alertThreshold
+        alert_threshold: settings.alertThreshold,
+        enable_daily_alerts: settings.enableDailyAlerts,
+        enable_weekly_alerts: settings.enableWeeklyAlerts,
+        enable_monthly_alerts: settings.enableMonthlyAlerts,
+        enable_yearly_alerts: settings.enableYearlyAlerts
       };
       
       // Save to database

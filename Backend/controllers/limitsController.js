@@ -23,7 +23,11 @@ const getLimits = async (req, res) => {
         weekly_limit: 0,
         monthly_limit: 0,
         yearly_limit: 0,
-        alert_threshold: 80
+        alert_threshold: 80,
+        enable_daily_alerts: true,
+        enable_weekly_alerts: true,
+        enable_monthly_alerts: true,
+        enable_yearly_alerts: true
       });
     }
   } catch (error) {
@@ -38,7 +42,18 @@ const getLimits = async (req, res) => {
 // Save/Update user limits
 const saveLimits = async (req, res) => {
   try {
-    const { user_id, daily_limit, weekly_limit, monthly_limit, yearly_limit, alert_threshold } = req.body;
+    const { 
+      user_id, 
+      daily_limit, 
+      weekly_limit, 
+      monthly_limit, 
+      yearly_limit, 
+      alert_threshold,
+      enable_daily_alerts,
+      enable_weekly_alerts,
+      enable_monthly_alerts,
+      enable_yearly_alerts
+    } = req.body;
 
     if (!user_id) {
       return res.status(400).json({
@@ -57,7 +72,16 @@ const saveLimits = async (req, res) => {
       // Update existing limits
       const updateQuery = `
         UPDATE user_limits
-        SET daily_limit = ?, weekly_limit = ?, monthly_limit = ?, yearly_limit = ?, alert_threshold = ?
+        SET 
+          daily_limit = ?, 
+          weekly_limit = ?, 
+          monthly_limit = ?, 
+          yearly_limit = ?, 
+          alert_threshold = ?,
+          enable_daily_alerts = ?,
+          enable_weekly_alerts = ?,
+          enable_monthly_alerts = ?,
+          enable_yearly_alerts = ?
         WHERE user_id = ?
       `;
       await db.execute(updateQuery, [
@@ -66,13 +90,28 @@ const saveLimits = async (req, res) => {
         monthly_limit || 0,
         yearly_limit || 0,
         alert_threshold || 80,
+        enable_daily_alerts ?? true,
+        enable_weekly_alerts ?? true,
+        enable_monthly_alerts ?? true,
+        enable_yearly_alerts ?? true,
         user_id
       ]);
     } else {
       // Insert new limits
       const insertQuery = `
-        INSERT INTO user_limits (user_id, daily_limit, weekly_limit, monthly_limit, yearly_limit, alert_threshold)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO user_limits (
+          user_id, 
+          daily_limit, 
+          weekly_limit, 
+          monthly_limit, 
+          yearly_limit, 
+          alert_threshold,
+          enable_daily_alerts,
+          enable_weekly_alerts,
+          enable_monthly_alerts,
+          enable_yearly_alerts
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await db.execute(insertQuery, [
         user_id,
@@ -80,7 +119,11 @@ const saveLimits = async (req, res) => {
         weekly_limit || 0,
         monthly_limit || 0,
         yearly_limit || 0,
-        alert_threshold || 80
+        alert_threshold || 80,
+        enable_daily_alerts ?? true,
+        enable_weekly_alerts ?? true,
+        enable_monthly_alerts ?? true,
+        enable_yearly_alerts ?? true
       ]);
     }
 

@@ -21,6 +21,10 @@ CREATE TABLE IF NOT EXISTS user_limits (
   monthly_limit DECIMAL(10, 2) DEFAULT 0,
   yearly_limit DECIMAL(10, 2) DEFAULT 0,
   alert_threshold INT DEFAULT 80,
+  enable_daily_alerts BOOLEAN DEFAULT TRUE,
+  enable_weekly_alerts BOOLEAN DEFAULT TRUE,
+  enable_monthly_alerts BOOLEAN DEFAULT TRUE,
+  enable_yearly_alerts BOOLEAN DEFAULT TRUE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

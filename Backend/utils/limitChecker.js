@@ -91,15 +91,19 @@ const checkYearlyLimit = async (userId, yearlyLimit, yearTotal) => {
 // Main function to check all limits
 const checkAllLimits = async (userId, limits, totals) => {
   try {
-    const { dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit } = limits;
+    const { 
+      dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit,
+      enableDailyAlerts, enableWeeklyAlerts, enableMonthlyAlerts, enableYearlyAlerts
+    } = limits;
     const { dailyTotal, weeklyTotal, monthlyTotal, yearlyTotal } = totals;
 
-    await Promise.all([
-      checkDailyLimit(userId, dailyLimit, dailyTotal),
-      checkWeeklyLimit(userId, weeklyLimit, weeklyTotal),
-      checkMonthlyLimit(userId, monthlyLimit, monthlyTotal),
-      checkYearlyLimit(userId, yearlyLimit, yearlyTotal)
-    ]);
+    const checks = [];
+    if (enableDailyAlerts) checks.push(checkDailyLimit(userId, dailyLimit, dailyTotal));
+    if (enableWeeklyAlerts) checks.push(checkWeeklyLimit(userId, weeklyLimit, weeklyTotal));
+    if (enableMonthlyAlerts) checks.push(checkMonthlyLimit(userId, monthlyLimit, monthlyTotal));
+    if (enableYearlyAlerts) checks.push(checkYearlyLimit(userId, yearlyLimit, yearlyTotal));
+
+    await Promise.all(checks);
   } catch (error) {
     console.error('Error checking limits:', error);
   }
@@ -109,7 +113,7 @@ const checkAllLimits = async (userId, limits, totals) => {
 const getUserLimits = async (userId) => {
   try {
     const query = `
-      SELECT daily_limit, weekly_limit, monthly_limit, yearly_limit
+      SELECT *
       FROM user_limits
       WHERE user_id = ?
     `;
@@ -121,14 +125,24 @@ const getUserLimits = async (userId) => {
         dailyLimit: rows[0].daily_limit,
         weeklyLimit: rows[0].weekly_limit,
         monthlyLimit: rows[0].monthly_limit,
-        yearlyLimit: rows[0].yearly_limit
+        yearlyLimit: rows[0].yearly_limit,
+        enableDailyAlerts: !!rows[0].enable_daily_alerts,
+        enableWeeklyAlerts: !!rows[0].enable_weekly_alerts,
+        enableMonthlyAlerts: !!rows[0].enable_monthly_alerts,
+        enableYearlyAlerts: !!rows[0].enable_yearly_alerts
       };
     }
     
-    return { dailyLimit: 0, weeklyLimit: 0, monthlyLimit: 0, yearlyLimit: 0 };
+    return { 
+      dailyLimit: 0, weeklyLimit: 0, monthlyLimit: 0, yearlyLimit: 0,
+      enableDailyAlerts: true, enableWeeklyAlerts: true, enableMonthlyAlerts: true, enableYearlyAlerts: true
+    };
   } catch (error) {
     console.error('Error getting user limits:', error);
-    return { dailyLimit: 0, weeklyLimit: 0, monthlyLimit: 0, yearlyLimit: 0 };
+    return { 
+      dailyLimit: 0, weeklyLimit: 0, monthlyLimit: 0, yearlyLimit: 0,
+      enableDailyAlerts: true, enableWeeklyAlerts: true, enableMonthlyAlerts: true, enableYearlyAlerts: true
+    };
   }
 };
 

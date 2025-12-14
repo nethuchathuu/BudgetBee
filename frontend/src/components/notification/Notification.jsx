@@ -17,6 +17,11 @@ const Notification = () => {
   const [monthlyLimit, setMonthlyLimit] = useState(0);
   const [yearlyLimit, setYearlyLimit] = useState(0);
 
+  const [enableDailyAlerts, setEnableDailyAlerts] = useState(true);
+  const [enableWeeklyAlerts, setEnableWeeklyAlerts] = useState(true);
+  const [enableMonthlyAlerts, setEnableMonthlyAlerts] = useState(true);
+  const [enableYearlyAlerts, setEnableYearlyAlerts] = useState(true);
+
   const [dailySpent, setDailySpent] = useState(0);
   const [weeklySpent, setWeeklySpent] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
@@ -42,7 +47,7 @@ const Notification = () => {
 
   useEffect(() => {
     checkLimits();
-  }, [dailySpent, weeklySpent, monthlySpent, yearlySpent, dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit, hasNotifiedDaily, hasNotifiedWeekly, hasNotifiedMonthly, hasNotifiedYearly]);
+  }, [dailySpent, weeklySpent, monthlySpent, yearlySpent, dailyLimit, weeklyLimit, monthlyLimit, yearlyLimit, hasNotifiedDaily, hasNotifiedWeekly, hasNotifiedMonthly, hasNotifiedYearly, enableDailyAlerts, enableWeeklyAlerts, enableMonthlyAlerts, enableYearlyAlerts]);
 
   const fetchLimits = async () => {
     try {
@@ -56,6 +61,14 @@ const Notification = () => {
         setWeeklyLimit(response.data.weekly_limit || 0);
         setMonthlyLimit(response.data.monthly_limit || 0);
         setYearlyLimit(response.data.yearly_limit || 0);
+        
+        // Helper to safely parse boolean/integer flags, defaulting to true
+        const isEnabled = (val) => val !== 0 && val !== false;
+
+        setEnableDailyAlerts(isEnabled(response.data.enable_daily_alerts));
+        setEnableWeeklyAlerts(isEnabled(response.data.enable_weekly_alerts));
+        setEnableMonthlyAlerts(isEnabled(response.data.enable_monthly_alerts));
+        setEnableYearlyAlerts(isEnabled(response.data.enable_yearly_alerts));
       }
     } catch (error) {
       console.error('Error fetching limits:', error);
@@ -103,22 +116,22 @@ const Notification = () => {
   };
 
   const checkLimits = () => {
-    if (dailyLimit > 0 && dailySpent > dailyLimit && !hasNotifiedDaily) {
+    if (enableDailyAlerts && dailyLimit > 0 && dailySpent > dailyLimit && !hasNotifiedDaily) {
       sendNotification('Daily', dailyLimit, dailySpent);
       setHasNotifiedDaily(true);
     }
 
-    if (weeklyLimit > 0 && weeklySpent > weeklyLimit && !hasNotifiedWeekly) {
+    if (enableWeeklyAlerts && weeklyLimit > 0 && weeklySpent > weeklyLimit && !hasNotifiedWeekly) {
       sendNotification('Weekly', weeklyLimit, weeklySpent);
       setHasNotifiedWeekly(true);
     }
 
-    if (monthlyLimit > 0 && monthlySpent > monthlyLimit && !hasNotifiedMonthly) {
+    if (enableMonthlyAlerts && monthlyLimit > 0 && monthlySpent > monthlyLimit && !hasNotifiedMonthly) {
       sendNotification('Monthly', monthlyLimit, monthlySpent);
       setHasNotifiedMonthly(true);
     }
 
-    if (yearlyLimit > 0 && yearlySpent > yearlyLimit && !hasNotifiedYearly) {
+    if (enableYearlyAlerts && yearlyLimit > 0 && yearlySpent > yearlyLimit && !hasNotifiedYearly) {
       sendNotification('Yearly', yearlyLimit, yearlySpent);
       setHasNotifiedYearly(true);
     }
