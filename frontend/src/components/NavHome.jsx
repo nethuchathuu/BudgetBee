@@ -11,7 +11,10 @@ export default function NavBar() {
   return (
     <nav className="flex items-center justify-between bg-[#0c111c] px-6 py-3 shadow-lg border-b border-emerald-400/20">
       {/* Left: Logo & Name */}
-      <div className="flex items-center space-x-2">
+      <div
+        className="flex items-center space-x-2 cursor-pointer"
+        onClick={() => navigate("/home")}  
+      >
         <img src={logo} alt="BudgetBee" className="h-8 w-8" />
         <span className="text-xl font-bold text-emerald-400">BudgetBee</span>
       </div>
