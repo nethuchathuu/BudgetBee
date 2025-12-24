@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import google from "../../assets/google_log.png";
+import { useToast } from '../../context/ToastContext';
+import GoogleAuth from "../GoogleAuth";
 
 
 export default function SignUpForm() {
@@ -12,6 +13,7 @@ export default function SignUpForm() {
     confirmPassword: "",
   });
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,7 +23,7 @@ export default function SignUpForm() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.show("Passwords do not match!", 'error');
       return;
     }
 
@@ -36,14 +38,16 @@ export default function SignUpForm() {
         }
       );
 
-      alert(response.data.message || "Signup successful!");
-      navigate("/signin");
+      toast.show(response.data.message || "Account created! Please check your inbox and click the verification link.", 'success');
+      // Don't navigate immediately, let user read the message or navigate to a "check email" page
+      // For now, we can navigate to signin but maybe with a delay or just stay here
+      setTimeout(() => navigate("/signin"), 3000);
     } catch (error) {
       console.error("Error during signup:", error);
       if (error.response && error.response.data) {
-        alert(error.response.data.error || "Signup failed!");
+        toast.show(error.response.data.error || "Signup failed!", 'error');
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.show("Something went wrong. Please try again.", 'error');
       }
     }
   };
@@ -92,10 +96,7 @@ export default function SignUpForm() {
 
       {/* Google Login Button */}
       
-      <button className="w-full bg-white text-gray-900 py-3 rounded-lg shadow-md flex items-center justify-center gap-2 hover:bg-gray-100 transition">
-              <img src={google} alt="Google" className="w-5 h-5" />
-              Sign Up with Google
-      </button>
+      <GoogleAuth text="Sign Up with Google" />
     </form>
   );
 }

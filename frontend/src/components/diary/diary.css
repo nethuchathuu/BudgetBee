@@ -1,0 +1,264 @@
+:root {
+  /* Light Theme Defaults */
+  --diary-background: #F8FAFC;
+  --diary-page-bg: #FFFFFF;
+  --diary-page-shadow-color: rgba(0, 0, 0, 0.08);
+  --diary-text-primary: #1E293B;
+  --diary-text-secondary: #475569;
+  --diary-accent-green: #10B981;
+  --diary-accent-blue: #3B82F6;
+  --diary-border: #E2E8F0;
+  --diary-notebook-line: #E5E7EB;
+  --diary-header-blur-bg: rgba(255, 255, 255, 0.5);
+
+  /* Shadows using the shadow color */
+  --diary-shadow-sm: 0 1px 2px 0 var(--diary-page-shadow-color);
+  --diary-shadow-md: 0 4px 6px -1px var(--diary-page-shadow-color), 0 2px 4px -1px var(--diary-page-shadow-color);
+  --diary-shadow-lg: 0 10px 15px -3px var(--diary-page-shadow-color), 0 4px 6px -2px var(--diary-page-shadow-color);
+}
+
+/* Dark Theme Overrides */
+.dark {
+  --diary-background: #0c111c;
+  --diary-page-bg: rgba(255, 255, 255, 0.05);
+  --diary-page-shadow-color: rgba(0, 0, 0, 0.6);
+  --diary-text-primary: #E2E8F0;
+  --diary-text-secondary: #A5B4FC;
+  --diary-accent-green: #34D399;
+  --diary-accent-blue: #60A5FA;
+  --diary-border: #1E293B;
+  --diary-notebook-line: rgba(255, 255, 255, 0.08);
+  --diary-header-blur-bg: rgba(12, 17, 28, 0.4);
+}
+
+.diary-book {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--diary-text-primary);
+}
+
+.book-container {
+  background-color: var(--diary-background);
+  border-radius: 16px;
+  box-shadow: var(--diary-shadow-lg);
+  overflow: hidden;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--diary-border);
+}
+
+.diary-navigation {
+  background-color: var(--diary-header-blur-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--diary-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-button {
+  background-color: transparent;
+  border: 1px solid var(--diary-border);
+  color: var(--diary-text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: var(--diary-page-bg);
+  color: var(--diary-text-primary);
+  border-color: var(--diary-accent-blue);
+  box-shadow: var(--diary-shadow-sm);
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-date-display {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--diary-text-primary);
+}
+
+.diary-pages {
+  display: flex;
+  flex: 1;
+  background-color: var(--diary-background);
+  padding: 2rem;
+  gap: 2rem;
+  position: relative;
+}
+
+.diary-page {
+  flex: 1;
+  background-color: var(--diary-page-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--diary-shadow-md);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid var(--diary-border);
+}
+
+.diary-page.left-page {
+  border-right: 1px solid var(--diary-border);
+}
+
+.page-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.page-date {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--diary-text-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--diary-border);
+}
+
+.page-text {
+  flex: 1;
+  width: 100%;
+  border: none;
+  resize: none;
+  font-size: 1.1rem;
+  line-height: 2rem;
+  color: var(--diary-text-primary);
+  background-color: transparent;
+  font-family: inherit;
+  padding: 0;
+  margin-top: 0;
+  
+  /* Notebook lines applied directly to text area for perfect alignment */
+  background-image: linear-gradient(transparent 95%, var(--diary-notebook-line) 95%);
+  background-size: 100% 2rem;
+  background-attachment: local;
+  /* Adjust padding to align text baseline with the lines */
+  padding-top: 0.25rem; 
+}
+
+.page-text:focus {
+  outline: none;
+}
+
+.page-text::placeholder {
+  color: var(--diary-text-secondary);
+  opacity: 0.6;
+}
+
+.save-status-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.save-status-inline {
+  color: var(--diary-accent-green);
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.save-status-inline.saving {
+  color: var(--diary-accent-blue);
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.save-status-inline.error {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mood-selector {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--diary-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.mood-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background-color: var(--diary-background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.mood-button:hover {
+  transform: scale(1.1);
+  background-color: var(--diary-border);
+}
+
+.mood-button.selected {
+  border-color: var(--diary-accent-blue);
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.1);
+}
+
+.empty-page-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--diary-text-secondary);
+  text-align: center;
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .diary-pages {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .diary-page {
+    min-height: 400px;
+  }
+
+  .diary-navigation {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-date-display {
+    order: -1;
+  }
+}

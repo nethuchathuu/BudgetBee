@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import google from "../../assets/google_log.png";
+import { useToast } from '../../context/ToastContext';
+import GoogleAuth from "../GoogleAuth";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,14 +24,20 @@ export default function SignInForm() {
         localStorage.setItem("token", response.data.token);
       }
 
-      alert(response.data.message || "Login successful!");
+      // Save user data
+      if (response.data.user) {
+        localStorage.setItem("user_id", response.data.user.id);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
+      toast.show(response.data.message || "Login successful!", 'success');
       navigate("/home");
     } catch (error) {
       console.error("Error during signin:", error);
       if (error.response && error.response.data) {
-        alert(error.response.data.error || "Signin failed!");
+        toast.show(error.response.data.error || "Signin failed!", 'error');
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.show("Something went wrong. Please try again.", 'error');
       }
     }
   };
@@ -56,9 +64,19 @@ export default function SignInForm() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full p-3 mb-2 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           required
         />
+
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm text-emerald-400 hover:text-emerald-300 hover:underline"
+          >
+            Forgot Password?
+          </button>
+        </div>
 
         <button
           type="submit"
@@ -76,10 +94,7 @@ export default function SignInForm() {
       </div>
 
       {/* Google Sign-In */}
-      <button className="w-full bg-white text-gray-900 py-3 rounded-lg shadow-md flex items-center justify-center gap-2 hover:bg-gray-100 transition">
-        <img src={google} alt="Google" className="w-5 h-5" />
-        Sign in with Google
-      </button>
+      <GoogleAuth text="Sign in with Google" />
 
       <p className="text-gray-400 mt-6 text-center">
         Don’t have an account?{" "}

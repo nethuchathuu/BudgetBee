@@ -1,9 +1,14 @@
 import React from "react";
 import { Camera, XCircle } from "lucide-react";
+import { useTheme } from '../../context/ThemeContext';
 
 export default function AfterUpload({ preview, onCancel, onRetake }) {
+  const { theme } = useTheme();
+  
   return (
-    <div className="flex flex-col h-full border-2 border-dashed border-emerald-400/40 rounded-xl p-4">
+    <div className={`flex flex-col h-full border-2 border-dashed rounded-xl p-4 ${
+      theme === 'dark' ? 'border-[#475569]' : 'border-[#CBD5E1]'
+    }`}>
       {/* Preview Image */}
       <div className="flex-1 flex items-center justify-center mb-4 min-h-0">
         <img
@@ -27,7 +32,11 @@ export default function AfterUpload({ preview, onCancel, onRetake }) {
         {/* Retake Button */}
         <label
           htmlFor="cameraInput"
-          className="flex items-center space-x-2 bg-emerald-400 text-[#0c111c] px-4 py-2 rounded-xl shadow hover:bg-emerald-500 transition cursor-pointer"
+          className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition cursor-pointer ${
+            theme === 'dark'
+              ? 'bg-[#1a1f2c] text-white border border-emerald-400/20 hover:bg-[#0f141f] shadow-[0_1px_3px_rgba(0,0,0,0.4)]'
+              : 'bg-[#059669] text-white hover:bg-[#047857] shadow-[0_1px_3px_rgba(0,0,0,0.15)]'
+          }`}
         >
           <Camera className="h-5 w-5" />
           <span>Retake</span>

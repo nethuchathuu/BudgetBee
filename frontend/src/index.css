@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+@theme {
+  --color-dark-bg-primary: #0c111c;
+  --color-dark-bg-secondary: #1a1f2c;
+  --color-dark-bg-tertiary: #0a0f1a;
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+/* Enable dark mode based on class */
+@media (prefers-color-scheme: dark) {
+  html.dark {
+    color-scheme: dark;
+  }
 }
