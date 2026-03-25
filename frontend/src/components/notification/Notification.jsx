@@ -79,7 +79,7 @@ const Notification = () => {
     try {
       const userId = localStorage.getItem('user_id') || 1;
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/expense/totals/${userId}`, {
+      const res = await axios.get(`http://localhost:5000/api/expenses/totals/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDailySpent(res.data.daily ?? 0);
