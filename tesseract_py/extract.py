@@ -5,6 +5,13 @@ import json
 import re
 from datetime import datetime
 
+# Gemini AI categorization (fuzzywuzzy-style interface, Gemini under the hood)
+try:
+    from enhanced_categorizer import categorize_items_with_gemini
+    GEMINI_CATEGORIZER_AVAILABLE = True
+except ImportError:
+    GEMINI_CATEGORIZER_AVAILABLE = False
+
 # If Tesseract is not in your PATH, specify the full path (Windows example):
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
@@ -317,7 +324,20 @@ def parse_bill_text(text):
     
     # Calculate total
     bill_info['total'] = sum(item['price'] for item in bill_info['items'])
-    
+
+    # --- Gemini AI re-categorization (replaces keyword-based categories) ---
+    # The items are already categorized via keyword matching above.
+    # Now attempt Gemini AI batch categorization for better accuracy.
+    # If Gemini fails, the keyword-based categories remain untouched.
+    if GEMINI_CATEGORIZER_AVAILABLE and bill_info['items']:
+        try:
+            gemini_categories = categorize_items_with_gemini(text, bill_info['items'])
+            if gemini_categories and len(gemini_categories) == len(bill_info['items']):
+                for i, cat in enumerate(gemini_categories):
+                    bill_info['items'][i]['category'] = cat
+        except Exception:
+            pass  # Silently fall back to keyword-based categories
+
     return bill_info
 
 def main():

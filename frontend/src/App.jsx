@@ -10,6 +10,7 @@ import MonthlySum from "./components/summary/MonthlySum";
 import YearlySum from "./components/summary/YearlySum";
 import Setting from "./components/setting/Setting";
 import Appearance from "./components/setting/Appearance";
+import Language from "./components/setting/Language";
 import SetHome from "./components/setting/SetHome";
 import NotLimit from "./components/setting/NotLimit";
 import Help from "./components/setting/Help";
@@ -54,6 +55,7 @@ function App() {
             {/* Settings Routes */}
             <Route path="/settings" element={<Setting />}>
               <Route path="appearance" element={<Appearance />} />
+              <Route path="language" element={<Language />} />
               <Route path="setHome" element={<SetHome />} />
               <Route path="notLimit" element={<NotLimit />} />
               <Route path="help" element={<Help />} />

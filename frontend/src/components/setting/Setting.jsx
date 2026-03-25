@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { Palette, Home, Bell, HelpCircle, RotateCcw, ChevronRight, Menu, X } from 'lucide-react';
+import { Palette, Home, Bell, HelpCircle, RotateCcw, ChevronRight, Menu, X, Languages } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import NavProfile from '../NavProfile';
 
@@ -11,6 +11,13 @@ const settingsMenu = [
     icon: Palette,
     description: 'Toggle dark and light mode',
     path: '/settings/appearance'
+  },
+  {
+    id: 'language',
+    label: 'Language',
+    icon: Languages,
+    description: 'Change application language',
+    path: '/settings/language'
   },
   {
     id: 'default-dashboard',

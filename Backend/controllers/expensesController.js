@@ -1086,6 +1086,36 @@ const expensesController = {
         message: 'Internal server error'
       });
     }
+  },
+
+  // Get totals for daily, weekly, monthly, and yearly
+  getTotals: async (req, res) => {
+    try {
+      const { user_id } = req.params;
+
+      const dailyQuery = `SELECT SUM(price) as total FROM expenses WHERE DATE(created_at) = CURDATE() AND user_id = ?`;
+      const weeklyQuery = `SELECT SUM(price) as total FROM expenses WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND user_id = ?`;
+      const monthlyQuery = `SELECT SUM(price) as total FROM expenses WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()) AND user_id = ?`;
+      const yearlyQuery = `SELECT SUM(price) as total FROM expenses WHERE YEAR(created_at) = YEAR(CURDATE()) AND user_id = ?`;
+
+      const [[dailyRes]] = await db.execute(dailyQuery, [user_id]);
+      const [[weeklyRes]] = await db.execute(weeklyQuery, [user_id]);
+      const [[monthlyRes]] = await db.execute(monthlyQuery, [user_id]);
+      const [[yearlyRes]] = await db.execute(yearlyQuery, [user_id]);
+
+      res.json({
+        daily: dailyRes.total || 0,
+        weekly: weeklyRes.total || 0,
+        monthly: monthlyRes.total || 0,
+        yearly: yearlyRes.total || 0
+      });
+    } catch (error) {
+      console.error('Error fetching totals:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
   }
 };
 
