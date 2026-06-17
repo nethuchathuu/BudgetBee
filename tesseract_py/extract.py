@@ -271,6 +271,7 @@ def parse_bill_text(text):
     item_started = False
     
     for line in lines:
+        line = re.sub(r'(\d+)\s+\.\s*(\d{2})', r'\1.\2', line)
         line_lower = line.lower()
         
         # Skip header information
@@ -299,7 +300,7 @@ def parse_bill_text(text):
             price_str = price_match.group(1) if price_match.group(1) else price_match.group(0).replace('$', '')
             try:
                 price = round(float(price_str), 2)  # Ensure 2 decimal precision
-                if 0.1 <= price <= 1000:  # Reasonable price range
+                if 0.1 <= price <= 1000000:  # Reasonable price range
                     # Extract item name (text before the price)
                     item_part = line[:price_match.start()].strip()
                     

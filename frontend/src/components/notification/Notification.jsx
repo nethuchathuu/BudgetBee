@@ -110,7 +110,7 @@ const Notification = () => {
   const sendNotification = (type, limit, spent) => {
     createNotification({
       title: `${type} Spending Limit Exceeded! 📊`,
-      message: `Your ${type.toLowerCase()} spending limit of Rs. ${limit.toFixed(2)} has been passed! This ${type.toLowerCase()}'s spending: Rs. ${spent.toFixed(2)}`,
+      message: `Your ${type.toLowerCase()} spending limit of Rs. ${Number(limit).toFixed(2)} has been passed! This ${type.toLowerCase()}'s spending: Rs. ${Number(spent).toFixed(2)}`,
       type: 'alert'
     });
   };

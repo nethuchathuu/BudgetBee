@@ -173,7 +173,10 @@ export default function Upload() {
           }
         }
         if (!isNaN(parsedDate)) {
-          const formattedDate = parsedDate.toISOString().split("T")[0];
+          const yyyy = parsedDate.getFullYear();
+          const mm = String(parsedDate.getMonth() + 1).padStart(2, '0');
+          const dd = String(parsedDate.getDate()).padStart(2, '0');
+          const formattedDate = `${yyyy}-${mm}-${dd}`;
           setBillDate(formattedDate);
         }
       } catch (error) {

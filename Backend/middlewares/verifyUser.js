@@ -12,7 +12,11 @@ const verifyUser = (req, res, next) => {
     console.log('User verified:', req.user);
     next();
   } catch (error) {
-    console.error('JWT verification error:', error);
+    if (error.name === 'TokenExpiredError') {
+      console.error('JWT verification error: Token expired');
+      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+    }
+    console.error('JWT verification error:', error.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
 };
