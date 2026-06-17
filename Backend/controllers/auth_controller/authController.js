@@ -5,10 +5,6 @@ const path = require('path');
 const { pool } = require('../../config/db');
 const { sendVerificationEmail, sendSignupVerificationLink } = require('../../utils/emailService');
 
-// Environment variable for JWT secret
-const JWT_SECRET = process.env.JWT_SECRET ;
-
-
 // Signup function 
 const signup = async (req, res) => {
   try {
@@ -50,7 +46,7 @@ const signup = async (req, res) => {
     // Generate verification token
     const verifyToken = jwt.sign(
       { id: userId, email: email },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
@@ -111,7 +107,7 @@ const signin = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
       },
-      JWT_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -416,7 +412,7 @@ const verifyEmail = async (req, res) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Update user verified status
     await pool.execute(
@@ -451,7 +447,7 @@ const googleAuth = async (req, res) => {
 
       const token = jwt.sign(
         { id: user.id, fullname: user.fullname, email: user.email },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 
@@ -483,7 +479,7 @@ const googleAuth = async (req, res) => {
 
       const token = jwt.sign(
         { id: newUser.id, fullname: newUser.fullname, email: newUser.email },
-        JWT_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 

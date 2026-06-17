@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Glow from "../components/com_landing/Glow";
-import PhoneMock from "../components/com_landing/PhoneMock";
+import budgetImg from "../assets/budget_img.png";
 import Features from "../components/com_landing/features";
 import HowItWorks from "../components/com_landing/HowItWorks";
 
@@ -55,7 +55,14 @@ export default function LandingPage() {
           </div>
 
           <div className="flex justify-center md:justify-end">
-            <PhoneMock />
+            <motion.img 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              src={budgetImg} 
+              alt="App UI Preview" 
+              className="w-full max-w-[400px] md:max-w-sm rounded-3xl shadow-2xl border border-white/10"
+            />
           </div>
         </section>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { Palette, Home, Bell, HelpCircle, RotateCcw, ChevronRight, Menu, X } from 'lucide-react';
+import { Palette, Home, Bell, HelpCircle, RotateCcw, ChevronRight, Menu, X, Languages } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import NavProfile from '../NavProfile';
 
@@ -11,6 +11,13 @@ const settingsMenu = [
     icon: Palette,
     description: 'Toggle dark and light mode',
     path: '/settings/appearance'
+  },
+  {
+    id: 'language',
+    label: 'Language',
+    icon: Languages,
+    description: 'Change application language',
+    path: '/settings/language'
   },
   {
     id: 'default-dashboard',
@@ -60,7 +67,7 @@ export default function Setting() {
     <div className={`min-h-screen ${isDark ? 'bg-[#0c111c]' : 'bg-gray-50'}`}>
       <NavProfile />
       
-      <div className="pt-16 h-[calc(100vh-64px)] flex">
+      <div className="min-h-[calc(100vh-64px)] flex pt-10">
         {/* Mobile Menu Toggle Button */}
         {showSidebar && (
           <button
@@ -163,7 +170,7 @@ export default function Setting() {
             transition-all duration-300 ease-in-out
           `}
         >
-          <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+          <div className="p-6 lg:p-8 pb-2 max-w-7xl mx-auto">
             {isMainSettingsPage ? (
               <div className={`${isDark ? 'bg-[#1a1f2c]' : 'bg-white'} rounded-xl shadow-lg p-8`}>
                 <h1 className={`text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>

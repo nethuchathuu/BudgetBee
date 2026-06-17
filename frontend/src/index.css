@@ -8,6 +8,8 @@
 
 html {
   scroll-behavior: smooth;
+  margin-top: 0 !important;
+  top: 0 !important;
 }
 
 /* Enable dark mode based on class */
@@ -15,4 +17,39 @@ html {
   html.dark {
     color-scheme: dark;
   }
+}
+
+/* Google Translate Widget Fixes */
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+.skiptranslate > iframe.goog-te-banner-frame {
+  display: none !important; 
+}
+
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+  display: none !important;
+}
+
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
+  display: none !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+  margin-top: 0 !important;
+}
+
+.goog-tooltip {
+  display: none !important;
+}
+.goog-tooltip:hover {
+  display: none !important;
+}
+.goog-text-highlight {
+  background-color: transparent !important;
+  border: none !important; 
+  box-shadow: none !important;
 }

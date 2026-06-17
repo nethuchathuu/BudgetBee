@@ -68,7 +68,6 @@ export default function UploadLeft({ onProcess }) {
       if (result.success) {
         // Pass the OCR results to parent component
         onProcess(result.billInfo, result.extractedText);
-        toast.show('Image processed successfully!', 'success');
       } else {
         throw new Error(result.error || 'OCR processing failed');
       }

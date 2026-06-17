@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import NavBar from "../components/NavHome";
 import UploadLeft from "../components/com_uploading/UploadLeft";
 import UploadRight from "../components/com_uploading/UploadRight";
+import ErrorUpload from "../components/com_uploading/errorUpload";
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { Trash } from 'lucide-react';
@@ -16,6 +17,7 @@ export default function Upload() {
   const [extractedText, setExtractedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [showError, setShowError] = useState(false);
 
   // ✅ Ensure at least one empty row is there at the beginning
   useEffect(() => {
@@ -171,7 +173,10 @@ export default function Upload() {
           }
         }
         if (!isNaN(parsedDate)) {
-          const formattedDate = parsedDate.toISOString().split("T")[0];
+          const yyyy = parsedDate.getFullYear();
+          const mm = String(parsedDate.getMonth() + 1).padStart(2, '0');
+          const dd = String(parsedDate.getDate()).padStart(2, '0');
+          const formattedDate = `${yyyy}-${mm}-${dd}`;
           setBillDate(formattedDate);
         }
       } catch (error) {
@@ -187,6 +192,9 @@ export default function Upload() {
         price: item.price ? String(item.price) : "",
       }));
       setRows(formattedRows);
+      toast.show('Image processed successfully!', 'success');
+    } else {
+      setShowError(true);
     }
   };
 
@@ -195,6 +203,20 @@ export default function Upload() {
       theme === 'dark' ? 'bg-[#0B1120] text-white' : 'bg-[#F8FAFC] text-gray-900'
     }`}>
       <NavBar />
+      {showError && (
+        <ErrorUpload 
+          message="Could not extract details from the bill. The image might be unclear. Please retake the bill photo."
+          onClose={() => setShowError(false)}
+          onRetake={() => {
+            setShowError(false);
+            window.dispatchEvent(new Event('budgetbee:clearImage'));
+            // Optionally, we could trigger the file input click here via DOM, 
+            // but for simplicity, the user can just click upload/camera again or use the UI.
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.click();
+          }}
+        />
+      )}
       <div className="flex flex-col justify-center items-center p-8">
         <div className={`flex rounded-2xl w-full max-w-6xl min-h-[500px] border ${
           theme === 'dark'

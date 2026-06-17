@@ -12,16 +12,16 @@ export default function Features() {
       desc: "Easily review and correct captured details like categories or costs to maintain accurate financial records.",
     },
     {
-      title: "Daily Budget Tips",
-      desc: "Get personalized spending insights to stay within your daily budget and make smarter financial decisions.",
+      title: "Daily, Weekly, Monthly, Yearly Budget Tips",
+      desc: "Get personalized spending insights to stay within your daily, Weekly, Monthly, Yearly budget and make smarter financial decisions.",
     },
     {
-      title: "Daily Spending Charts",
-      desc: "Visualize expenses with clear bar or pie charts to understand where your money goes each day.",
+      title: "Daily, Weekly, Monthly, Yearly Spending Charts",
+      desc: "Visualize expenses with clear bar or pie charts to understand where your money goes each day, week, month, or year.",
     },
     {
-      title: "Downloadable Daily Reports",
-      desc: "Export daily expense reports as PDFs for easy sharing and record-keeping.",
+      title: "Downloadable Daily, Weekly, Monthly, Yearly Reports",
+      desc: "Export daily, weekly, monthly, and yearly expense reports as PDFs for easy sharing and record-keeping.",
     },
     {
       title: "Look Back at Past Days",
@@ -34,6 +34,18 @@ export default function Features() {
     {
       title: "Notification System",
       desc: "Receive timely alerts for overspending with category-wise breakdowns to stay in control of your budget.",
+    },
+    {
+      title: "Smart Categorization",
+      desc: "Automatically organize your expenses into logical categories for better tracking and a clear breakdown of your spending.",
+    },
+    {
+      title: "Language Translation",
+      desc: "Instantly translate receipt details and app elements into your preferred language for easier understanding.",
+    },
+    {
+      title: "Diary & Notes",
+      desc: "Keep a daily financial diary to add personal notes, context, and reflections on your spending habits.",
     },
   ];
 

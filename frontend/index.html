@@ -4,9 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./src/assets/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BudgetBee</title>
+    <title class="notranslate" translate="no">BudgetBee</title>
   </head>
   <body>
+    <!-- Hidden Google Translate Element for app-wide translation -->
+    <div id="google_translate_element" style="display: none;"></div>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,si,ta',
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

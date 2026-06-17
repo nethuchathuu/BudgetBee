@@ -187,7 +187,7 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
         {/* Calendar Content */}
         <div className="p-6">
           {/* Month/Year Navigation */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 notranslate" translate="no">
             <button
               onClick={handlePrevMonth}
               className="p-2 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -221,7 +221,7 @@ const Calendar = ({ selectedDate, onDateSelect, onClose, isOpen }) => {
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-8 gap-1">
+          <div className="grid grid-cols-8 gap-1 notranslate" translate="no">
             {/* Week Label Header */}
             <div className="text-center text-xs font-semibold text-gray-500 py-2">
               Week

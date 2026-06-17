@@ -47,6 +47,7 @@ def test_new_categorization():
         ("Green tea", "Beverages"),
         ("Soft drink", "Beverages"),
         
+        
         # Personal Care
         ("Shampoo bottle", "Personal Care"),
         ("Body soap", "Personal Care"),

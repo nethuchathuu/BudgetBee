@@ -44,4 +44,7 @@ router.get('/all/:user_id', verifyUser, expensesController.getAllExpenses);
 // Delete expense
 router.delete('/:expense_id', verifyUser, expensesController.deleteExpense);
 
+// Get totals
+router.get('/totals/:user_id', verifyUser, expensesController.getTotals);
+
 module.exports = router;
