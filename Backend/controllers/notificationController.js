@@ -35,12 +35,81 @@ const createNotification = async (req, res) => {
       });
     }
 
+    // 1. Detect limit type to prevent duplicates for exceeded limits
+    let limitType = null;
+    const lowerTitle = title.toLowerCase();
+    const lowerType = (type || '').toLowerCase();
+
+    if (
+      lowerType === 'daily' || 
+      (lowerTitle.includes('daily') && (lowerTitle.includes('limit') || lowerTitle.includes('budget') || lowerTitle.includes('spending')))
+    ) {
+      limitType = 'daily';
+    } else if (
+      lowerType === 'weekly' || 
+      (lowerTitle.includes('weekly') && (lowerTitle.includes('limit') || lowerTitle.includes('budget') || lowerTitle.includes('spending')))
+    ) {
+      limitType = 'weekly';
+    } else if (
+      lowerType === 'monthly' || 
+      (lowerTitle.includes('monthly') && (lowerTitle.includes('limit') || lowerTitle.includes('budget') || lowerTitle.includes('spending')))
+    ) {
+      limitType = 'monthly';
+    } else if (
+      lowerType === 'yearly' || 
+      (lowerTitle.includes('yearly') && (lowerTitle.includes('limit') || lowerTitle.includes('budget') || lowerTitle.includes('spending')))
+    ) {
+      limitType = 'yearly';
+    }
+
+    if (limitType) {
+      // Check if a limit notification of this type already exists today
+      const checkQuery = `
+        SELECT id FROM notifications
+        WHERE user_id = ?
+          AND (
+            type = ?
+            OR (title LIKE ? AND (title LIKE '%limit%' OR title LIKE '%budget%' OR title LIKE '%spending%'))
+          )
+          AND DATE(timestamp) = CURDATE()
+      `;
+      const typePattern = `%${limitType}%`;
+      const [existing] = await db.execute(checkQuery, [user_id, limitType, typePattern]);
+
+      if (existing.length > 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Notification already exists for today',
+          notificationId: existing[0].id
+        });
+      }
+    }
+
+    // 2. Fallback check for exact duplicate title today
+    const exactQuery = `
+      SELECT id FROM notifications
+      WHERE user_id = ?
+        AND title = ?
+        AND DATE(timestamp) = CURDATE()
+    `;
+    const [exactExisting] = await db.execute(exactQuery, [user_id, title]);
+    if (exactExisting.length > 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'Notification already exists for today',
+        notificationId: exactExisting[0].id
+      });
+    }
+
     const query = `
       INSERT INTO notifications (user_id, title, message, type, timestamp, isRead)
       VALUES (?, ?, ?, ?, NOW(), false)
     `;
 
-    const [result] = await db.execute(query, [user_id, title, message, type || 'general']);
+    // Map frontend 'alert' type or detected type to DB enum schema
+    const finalType = limitType || (type === 'alert' ? 'general' : type) || 'general';
+
+    const [result] = await db.execute(query, [user_id, title, message, finalType]);
 
     res.status(201).json({
       success: true,
